@@ -47,8 +47,7 @@ Inside of the “hello_world” application is a file *RT1050.jdebug* which is a
 
 ![debug_w_ozone](https://github.com/nxp-pro-support/zephyr-start/assets/152433281/a989f9bd-2523-4e7b-8b55-adedeb7094d7)
 
-
-** Important note **
+***Important note***
 
 The i.MX RT series parts are flashless with a ROM bootloader.   There are a couple of extra steps to create a ozone project. 
 
@@ -56,12 +55,11 @@ You can use the RT1050.jdebug as a template to copy to other example folders. In
 
 You should be able to copy it to a folder of another project and it will point to the build/zephyr/zephyr.elf in the application folder.
 
-Example:
+**Example:**
 
 Here I copy the RT1050.jdebug to the **samples/drives/uart/echo_bot** project and then build/run.
 
 ![debug_uart_driver_sample](https://github.com/nxp-pro-support/zephyr-start/assets/152433281/0e4389b4-df8a-4205-a49e-6a86e8a922b4)
-
 
 Link to Segger note about ozone debug w/ rom bootloader:
 
