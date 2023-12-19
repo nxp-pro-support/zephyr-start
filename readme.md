@@ -58,8 +58,6 @@ Example:
 
 Here I copy the RT1050.jdebug to the samples/drives/uart/echo_bot project and then build/run.
 
-
-
 Link to segger note about ozone debug w/ rom bootloader
 
 https://wiki.segger.com/Debug_on_a_Target_with_Bootloader
