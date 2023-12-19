@@ -1,5 +1,5 @@
 
-#Setup
+# Setup
 
 1.) Create a working folder on your local machine i.e. 'zephyr-start'
 
