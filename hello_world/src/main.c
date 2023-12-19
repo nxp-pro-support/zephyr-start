@@ -46,17 +46,31 @@ static int monkey_handler(const struct shell *shell,
    return 0;
 }
 
+static int test_command_handler(const struct shell *shell, 
+                      size_t argc,
+                      char **argv)
+{
+   ARG_UNUSED(argc);
+   ARG_UNUSED(argv);
 
-SHELL_CMD_REGISTER(monkey, NULL, "It is super Moos", monkey_handler);
+  shell_fprintf(shell,SHELL_VT100_COLOR_CYAN,"                          I'm Super\r\n");
+   
+   
+   return 0;
+}
+
+SHELL_CMD_REGISTER(monkey, NULL, "I'm super.", monkey_handler);
+
+SHELL_CMD_REGISTER(test_cmd, NULL, "This is a test command", test_command_handler);
 
 
 int main(void)
 {
 
-	LOG_INF("The RT685 SuperMonkey is running.");
+	LOG_INF("We are up and running");
 
-	while(1)
+   while(1)
 	{  
 		k_sleep(K_MSEC(1000));
-	}
+   }
 }
