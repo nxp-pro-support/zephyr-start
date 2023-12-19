@@ -1,3 +1,13 @@
+# Background
+
+This repository constains a simple example of a zephyr application as a west manifest file.
+
+Some background on Zephyr workspaces and west manifest files.
+
+https://docs.zephyrproject.org/latest/develop/application/index.html
+
+https://blog.golioth.io/improving-zephyr-project-structure-with-manifest-files/
+
 
 # Setup
 
