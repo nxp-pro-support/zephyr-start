@@ -8,14 +8,14 @@ manifest:
 
   defaults:
     remote: zephyrproject-rtos
-    revision: zephyr-v3.5.0
+    revision: main
 
   projects:
 
     - name: zephyr
       remote: zephyrproject-rtos
       repo-path: zephyr
-      revision: zephyr-v3.5.0
+      revision: main
       import: true
 
   self:
