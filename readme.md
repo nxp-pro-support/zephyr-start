@@ -2,6 +2,10 @@
 
 This repository constains a simple example of a zephyr application as a west manifest file.
 
+This approach allows new developers to setup an application with minimal effort.  The manifest file will pull in a copy of zephyr and another libraries/repos specified in the west.yml.
+
+This manifest references a sample module/library repository as an example of how to structure a libraries that can be shared between multiple applications.
+
 Some background on Zephyr workspaces and west manifest files.
 
 https://docs.zephyrproject.org/latest/develop/application/index.html
@@ -11,35 +15,35 @@ https://blog.golioth.io/improving-zephyr-project-structure-with-manifest-files/
 
 # Setup
 
-1.) Create a working folder on your local machine i.e. 'zephyr-start'
+1. Create a working folder on your local machine i.e. 'zephyr-start'
 
 
-2.) cd into that folder and run:
+2. cd into that folder and run:
+
 
 ```
 west init -m https://github.com/nxp-pro-support/zephyr-start --mr main
 ```
 
-This initiazes the folder as a west/zephyr workspace registered to our application repository.
+This initializes the folder as a west/zephyr workspace registered to our application repository.
 
+3.  Run `west update`.   
 
-3.)  Run "west update".   This may take several minutes to pull in all of the dependencies.
-
-In this step,  west will look at the manifest and pull down all the dependencies.   In this case, the dependecy is the vanilla Zephyr repository.   It is quite large and can take a few minutes but only has to be initialize once.  Future calls to west update are much quicker.
+This may take several minutes to pull in all of the dependencies. In this step,  west will look at the manifest and pull down all the dependencies.   In this case, the dependecies are the vanilla Zephyr repository and our sample modules/library repository. It is quite large and can take a few minutes but only has to be initialize once.  Future calls to west update are much quicker.
 
 ![zephyr_start](https://github.com/nxp-pro-support/zephyr-start/assets/152433281/8df1b0aa-721d-4895-a4ae-12a2d6c6ff4d)
 
-4.) open the folder your created in step 1 in vs code.
+4.) Open the folder your created in step 1 in vs code.
 
-You will see another folder of the same name "zephyr-start" which has a hello world folder.
+You will see another folder of the same name `zephyr-start` which has a hello world folder.
 
-Right click on the hello world folder an "open in integrated terminal"
+Right click on the hello world folder an `open in integrated terminal`
 
 Run the command 
 
 `west build -bmimxrt1050_evk --pristine`
 
-This will build the code for the RT1050 EVK.  "pristine" tells west to start fresh.   Normally,  west builds without the pristine switch will only build what things that have changed.
+This will build the code for the RT1050 EVK.  *pristine* tells west to start fresh.   Normally,  west builds without the pristine switch will only build what things that have changed.
 
 ![build_hello_world](https://github.com/nxp-pro-support/zephyr-start/assets/152433281/00d49408-9aa8-410d-a03b-b8b575e245ca)
 
@@ -76,8 +80,8 @@ Link to Segger note about ozone debug w/ rom bootloader:
 https://wiki.segger.com/Debug_on_a_Target_with_Bootloader
 
 'ROM bootloader
-Should your setup be that you have a bootloader in ROM that needs to be executed first simply leave the functions AfterTargetDownload() and AfterTargetReset() empty (but not commented out!). This will override Ozone's default and nothing will be executed so the ROM bootloader can run without interference and jump to the application space where per default Ozone will then stop at main.'
 
+Should your setup be that you have a bootloader in ROM that needs to be executed first simply leave the functions AfterTargetDownload() and AfterTargetReset() empty (but not commented out!). This will override Ozone's default and nothing will be executed so the ROM bootloader can run without interference and jump to the application space where per default Ozone will then stop at main.'
 
 
 

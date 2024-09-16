@@ -2,10 +2,11 @@
 
 cmake_minimum_required(VERSION 3.13.1)
 
-#set(BOARD mimxrt685_evk_cm33)
-
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
 project(hello_world)
 
 target_sources(app PRIVATE src/main.c)
+
+# colorized errors
+zephyr_library_compile_options(-fdiagnostics-color=always)
