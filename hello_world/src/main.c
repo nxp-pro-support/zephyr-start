@@ -63,6 +63,7 @@ SHELL_CMD_REGISTER(monkey, NULL, "I'm super.", monkey_handler);
 
 SHELL_CMD_REGISTER(test_cmd, NULL, "This is a test command", test_command_handler);
 
+static int i = 0;
 
 int main(void)
 {
@@ -71,6 +72,7 @@ int main(void)
 
    while(1)
 	{  
-		k_sleep(K_MSEC(1000));
+		k_sleep(K_MSEC(2000));
+      LOG_INF("We are up and running %d",i++);
    }
 }

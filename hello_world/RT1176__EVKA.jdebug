@@ -4,9 +4,9 @@
 *                         www.segger.com                             *
 **********************************************************************
 
-File          : C:/ELI/stryker/zephyr-start/hello_world/RT1176.jdebug
-Created       : 10 Jul 2024 16:56
-Ozone Version : V3.34
+File          : C:/ELI/zephyr-start/zephyr-start/hello_world/RT1176__EVKA.jdebug
+Created       : 22 Sep 2024 09:52
+Ozone Version : V3.36
 */
 
 /*********************************************************************
@@ -18,21 +18,21 @@ Ozone Version : V3.34
 *
 **********************************************************************
 */
-void OnProjectLoad (void) {
+void OnProjectLoad (void) 
+{
   //
   // Dialog-generated settings
   //
-  Project.AddPathSubstitute ("C:/ELI/stryker/zephyr-start/hello_world", "$(ProjectDir)");
-  Project.AddPathSubstitute ("c:/eli/stryker/zephyr-start/hello_world", "$(ProjectDir)");
   Project.SetDevice ("MIMXRT1176xxxA_M7");
   Project.SetHostIF ("USB", "");
   Project.SetTargetIF ("SWD");
-  Project.SetTIFSpeed ("1 MHz");
+  Project.SetTIFSpeed ("4 MHz");
   Project.AddSvdFile ("$(InstallDir)/Config/CPU/Cortex-M7F.svd");
   //
   // User settings
   //
-  File.Open ("$(ProjectDir)/build/zephyr/zephyr.elf");
+  File.Open ("./build/zephyr/zephyr.elf");
+  Edit.SysVar (VAR_VERIFY_DOWNLOAD, 0);
 }
 
 /*********************************************************************
@@ -199,7 +199,7 @@ void AfterTargetReset (void) {
 **********************************************************************
 */
 void AfterTargetDownload (void) {
-  //_SetupTarget();
+  _SetupTarget();
 }
 
 /*********************************************************************
@@ -324,8 +324,4 @@ void AfterTargetDownload (void) {
 **********************************************************************
 */
 void _SetupTarget(void) {
-  //
-  // this function is intentionally empty because both inital PC and
-  // initial SP were chosen not to be set
-  //
 }
