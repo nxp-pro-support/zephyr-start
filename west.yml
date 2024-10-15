@@ -5,6 +5,9 @@ manifest:
   remotes:
     - name: zephyrproject-rtos
       url-base: https://github.com/zephyrproject-rtos
+    - name: nxp-upstream
+      url-base: https://github.com/nxp-upstream/
+
     - name: nxp-pro-support
       url-base: https://github.com/nxp-pro-support/
 
@@ -15,7 +18,7 @@ manifest:
   projects:
 
     - name: zephyr
-      remote: zephyrproject-rtos
+      remote: nxp-upstream
       repo-path: zephyr
       revision: main
       import: true
