@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "printk.h": "c",
+        "i2c.h": "c"
+    }
+}
