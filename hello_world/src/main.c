@@ -67,12 +67,14 @@ static int i = 0;
 
 int main(void)
 {
+   k_sleep(K_MSEC(1000));
 
-	LOG_INF("We are up and running");
+   printk("\r\n\r\nHello from %s\r\n\r\n",CONFIG_BOARD);
 
    while(1)
 	{  
 		k_sleep(K_MSEC(2000));
+
       LOG_INF("We are up and running %d",i++);
    }
 }
