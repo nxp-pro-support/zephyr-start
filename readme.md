@@ -1,12 +1,14 @@
 # Background
 
-This repository constains a simple example of a zephyr application as a west manifest file.
+This repository contains a simple example of a zephyr application as a west manifest file.
 
 This approach allows new developers to setup an application with minimal effort.  The manifest file will pull in a copy of zephyr and another libraries/repos specified in the west.yml.
 
 This manifest references a sample module/library repository as an example of how to structure a libraries that can be shared between multiple applications.
 
 Some background on Zephyr workspaces and west manifest files.
+
+https://docs.zephyrproject.org/latest/develop/west/basics.html
 
 https://docs.zephyrproject.org/latest/develop/application/index.html
 
@@ -29,7 +31,7 @@ This initializes the folder as a west/zephyr workspace registered to our applica
 
 3.  Run `west update`.   
 
-This may take several minutes to pull in all of the dependencies. In this step,  west will look at the manifest and pull down all the dependencies.   In this case, the dependecies are the vanilla Zephyr repository and our sample modules/library repository. It is quite large and can take a few minutes but only has to be initialize once.  Future calls to west update are much quicker.
+This may take several minutes to pull in all of the dependencies. In this step,  west will look at the manifest and pull down all the dependencies.   In this case, the dependecies are the vanilla Zephyr repository and our sample modules/library repository. It is quite large and can take several minutes but only has to be initialized once.  Future calls to west update are much quicker.
 
 ![zephyr_start](https://github.com/nxp-pro-support/zephyr-start/assets/152433281/8df1b0aa-721d-4895-a4ae-12a2d6c6ff4d)
 

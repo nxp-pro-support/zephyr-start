@@ -7,10 +7,10 @@ manifest:
       url-base: https://github.com/zephyrproject-rtos
 
     - name: nxp-upstream
-      url-base: https://github.com/nxp-upstream/
+      url-base: https://github.com/nxp-upstream
 
     - name: nxp-pro-support
-      url-base: https://github.com/nxp-pro-support/
+      url-base: https://github.com/nxp-pro-support
 
   defaults:
     remote: zephyrproject-rtos
@@ -29,6 +29,13 @@ manifest:
       repo-path: zephyr-module-sample
       revision: main
       path: ./modules/module-sample
+
+    - name: zephyr-custom-board-sample
+      remote: nxp-pro-support
+      repo-path: zephyr-custom-board-sample
+      revision: main
+      path: ./custom-boards/
+
 
   self:
     path: zephyr-start
