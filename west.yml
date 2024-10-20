@@ -41,9 +41,8 @@ manifest:
       
     - name: wn_zephyr_modules   
       remote: wn_modules    
-      path: ./modules/wavenumber      
+      path: ./modules/wn_modules     
       revision: main
-
 
   self:
     path: zephyr-start
