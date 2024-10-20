@@ -11,6 +11,9 @@ manifest:
 
     - name: nxp-pro-support
       url-base: https://github.com/nxp-pro-support
+      
+    - name: wn_modules
+      url-base: https://github.com/wavenumber-eng
 
   defaults:
     remote: zephyrproject-rtos
@@ -35,6 +38,11 @@ manifest:
       repo-path: zephyr-custom-board-sample
       revision: main
       path: ./custom-boards/
+      
+    - name: wn_zephyr_modules   
+      remote: wn_modules    
+      path: ./modules/wavenumber      
+      revision: main
 
 
   self:
