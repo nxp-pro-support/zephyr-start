@@ -1,4 +1,3 @@
-#include "t2.h"
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/drivers/gpio.h>
@@ -29,7 +28,6 @@ void t2_thread_task(void *, void *, void *)
     {
         LOG_INF("Hello from T2!");
         gpio_pin_toggle_dt(&led);
-
         k_sleep(K_MSEC(500));
     }
 }
