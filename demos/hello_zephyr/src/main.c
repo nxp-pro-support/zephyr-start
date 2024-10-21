@@ -45,11 +45,15 @@ LOG_MODULE_REGISTER(main);
 
 int main(void)
 {
-    LOG_INF("Hello Zephyr!");
+    
+    LOG_INF(CONFIG_APP_GREETING_MESSAGE);
 
     while (1)
     {   
-        LOG_INF("Hello from main!");
+       #if CONFIG_APP_ENABLE_MAIN_LOOP_LOG
+            LOG_INF("Hello from main!");
+       #endif
+       
         k_sleep(K_MSEC(500));
     }
     

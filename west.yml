@@ -8,11 +8,14 @@ manifest:
 
     - name: nxp-upstream
       url-base: https://github.com/nxp-upstream
+    
+    - name: nxp-downstream
+      url-base: https://github.com/nxp-zephyr/
 
     - name: nxp-pro-support
       url-base: https://github.com/nxp-pro-support
       
-    - name: wn_modules
+    - name: wn
       url-base: https://github.com/wavenumber-eng
 
   defaults:
@@ -22,7 +25,7 @@ manifest:
   projects:
 
     - name: zephyr
-      remote: zephyrproject-rtos
+      remote:  zephyrproject-rtos
       repo-path: zephyr
       revision: main
       import: true
@@ -40,9 +43,15 @@ manifest:
       path: ./custom-boards/
       
     - name: wn_zephyr_modules   
-      remote: wn_modules    
+      remote: wn    
       path: ./modules/wn_modules     
       revision: main
+     
+    - name: bunny_build
+      remote: wn
+      revision: main
+      path: modules/bunny_build
+      
 
   self:
     path: zephyr-start

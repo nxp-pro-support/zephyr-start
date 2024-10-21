@@ -1,0 +1,25 @@
+mainmenu "hello_zephyr_sample"
+
+menu "hello_zephyr application Settings"
+
+config APP_ENABLE_MAIN_LOOP_LOG
+	bool "Enable main loop logging"
+	default y
+	help
+	  Enable main loop logging
+
+config APP_GREETING_MESSAGE
+    string "Greeting message"
+    default "Hello, Zephyr!"
+    help
+      Set the greeting message for the application
+
+config APP_ENABLE_T2
+	bool "Enable the T2 thread"
+	default y
+    help
+      Enable the T2 thread
+endmenu
+
+
+source "Kconfig.zephyr"
