@@ -8,6 +8,8 @@
 #include <ezh_app.h>
 #include "bunny_build.h"
 
+#include "fsl_device_registers.h"
+
 uint32_t ezh_stack[16];
 
 EZHPWM_Para ezh_parameters;
@@ -88,6 +90,8 @@ ISR_DIRECT_DECLARE(Reserved46_IRQHandler__EZH)
 
 void ezh__start_app()
 {
+
+MRT0->CHANNEL[0].STAT = 0;
 
     EZH_SetExternalFlag(0) ;
 
