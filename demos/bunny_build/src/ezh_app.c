@@ -2,7 +2,7 @@
 #include <zephyr/irq.h>
 
 #include "fsl_common.h"
-#include "fsl_gpio.h"
+//#include "fsl_gpio.h"
 #include "fsl_clock.h"
 #include "ezh_init.h"
 #include <ezh_app.h>
