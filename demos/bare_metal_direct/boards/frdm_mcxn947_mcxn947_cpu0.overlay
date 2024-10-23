@@ -1,0 +1,12 @@
+/ {
+
+	leds {
+        compatible = "nxp,mcux-gpio";
+		red_led: led_3 {
+			gpios = <&gpio0 10 GPIO_ACTIVE_LOW>;
+			label = "Red LED";
+			status = "okay";
+		};
+	};
+
+};

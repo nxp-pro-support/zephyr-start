@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "log.h": "c",
+        "stdio.h": "c",
+        "kernel.h": "c",
+        "shell.h": "c",
+        "gpio.h": "c",
+        "t2.h": "c",
+        "mcxn947_cm33_core0.h": "c",
+        "fsl_port.h": "c",
+        "fsl_common.h": "c"
+    }
+}
