@@ -9,6 +9,7 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/shell/shell.h>
 
+
 LOG_MODULE_REGISTER(main);
 
 static int monkey_handler(const struct shell *shell, 
