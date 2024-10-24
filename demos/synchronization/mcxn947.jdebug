@@ -22,8 +22,7 @@ void OnProjectLoad (void) {
   //
   // Dialog-generated settings
   //
-  Project.AddPathSubstitute ("C:/Users/Jerry/Desktop/hello_MCXN947/mcxn-iot/applications/synchronization", "$(ProjectDir)");
-  Project.AddPathSubstitute ("c:/users/jerry/desktop/hello_mcxn947/mcxn-iot/applications/synchronization", "$(ProjectDir)");
+
   Project.SetDevice ("MCXN947_M33_0");
   Project.SetHostIF ("USB", "");
   Project.SetTargetIF ("SWD");
@@ -32,7 +31,7 @@ void OnProjectLoad (void) {
   //
   // User settings
   //
-  File.Open ("$(ProjectDir)/build/zephyr/zephyr.elf");
+  File.Open ("./build/zephyr/zephyr.elf");
 }
 
 /*********************************************************************
