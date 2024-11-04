@@ -16,7 +16,8 @@ EZHPWM_Para ezh_parameters;
 
 uint32_t ezh_debug_params[5];
 
-uint32_t  my_ezh_program[128]; //Todo relocate into fast SRAMX - no contention
+__attribute((section("SRAM1"))) uint32_t my_ezh_program[256];
+__attribute((section("SRAM1"))) uint32_t my_ezh_program2[256];
 
 uint32_t test_val = 0;
 

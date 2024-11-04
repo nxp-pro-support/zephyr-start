@@ -312,7 +312,7 @@ int main(void)
 	buf_desc.pitch = rect_w;
 	buf_desc.width = rect_w;
 	buf_desc.height = rect_h;
-
+/*
 	fill_buffer_fnc(TOP_LEFT, 0, buf, buf_size);
 	x = 0;
 	y = 0;
@@ -322,7 +322,7 @@ int main(void)
 	x = capabilities.x_resolution - rect_w;
 	y = 0;
 	display_write(display_dev, x, y, &buf_desc, buf);
-
+*/
 	fill_buffer_fnc(BOTTOM_RIGHT, 0, buf, buf_size);
 	x = capabilities.x_resolution - rect_w;
 	y = capabilities.y_resolution - rect_h;
