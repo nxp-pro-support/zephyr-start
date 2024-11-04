@@ -4,6 +4,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-&flexcomm4 {
+arduino_i2c: &flexcomm4 {
 	status = "okay";
+	compatible = "nxp,lpc-i2c";
+	clock-frequency = <I2C_BITRATE_STANDARD>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	
+	label = "my_i2c";
+
+	mma8652fc: mma8652fc@1d {
+		compatible = "nxp,fxos8700","nxp,mma8652fc";
+		reg = <0x1d>;
+		int1-gpios = <&gpio1 19 GPIO_ACTIVE_LOW>;
+
+		label = "my_accel";
+	};
 };

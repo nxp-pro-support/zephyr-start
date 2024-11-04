@@ -10,23 +10,31 @@
 #include <zephyr/shell/shell.h>
 #include <zephyr/logging/log.h>
 
+
+
 #if CONFIG_BOARD_FRDM_MCXN947 == 1
 
-#define TEMP_SENSOR_I2C_ADDRESS		0X48
-#define TEMP_SENSOR_RESOLUTION		0.0625f		//0.0625 °C
 
-static const struct device * i2c5_bus = DEVICE_DT_GET(DT_NODELABEL(flexcomm5_lpi2c5));
-
+/*
+This is needed for FRDM-MCXN947 right now.  The board.c file is not setting up clock
+for flexcomm5 even if it enable in the device tree
+*/
 int extra_clock_init()
 {
-
-
     CLOCK_SetClkDiv(kCLOCK_DivFlexcom5Clk, 1u); 
     CLOCK_AttachClk(kFRO12M_to_FLEXCOMM5);
 
     return 0;
 }
 SYS_INIT(extra_clock_init, PRE_KERNEL_1, 0);
+
+
+#define TEMP_SENSOR_I2C_ADDRESS		0X48
+#define TEMP_SENSOR_RESOLUTION		0.0625f		//0.0625 °C
+
+static const struct device * i2c5_bus = DEVICE_DT_GET(DT_NODELABEL(flexcomm5_lpi2c5));
+
+
 
 
 static int read_temperature_handler(const struct shell *shell, size_t argc, char **argv)

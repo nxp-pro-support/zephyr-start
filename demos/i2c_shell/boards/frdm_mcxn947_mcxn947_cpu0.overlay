@@ -13,6 +13,13 @@
 	pinctrl-0 = <&pinmux_flexcomm5_lpi2c>;
 	pinctrl-names = "default";
 	clock-frequency = <I2C_BITRATE_STANDARD>;
+
+	p3t1755: p3t1755@4800000236152a0090 {
+		compatible = "nxp,p3t1755";
+		reg = <0x48 0x0236 0x152a0090>;
+		status = "okay";
+		label = "my_temp_sensor";
+	};
 };
 
 
