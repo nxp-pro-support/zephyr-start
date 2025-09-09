@@ -2,6 +2,7 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/shell/shell.h>
 
+LOG_MODULE_REGISTER(main);
 
 static int monkey_handler(const struct shell *shell, 
                       size_t argc,
@@ -40,21 +41,13 @@ static int monkey_handler(const struct shell *shell,
 
 SHELL_CMD_REGISTER(monkey, NULL, "I'm super.", monkey_handler);
 
-LOG_MODULE_REGISTER(main);
-
-
 int main(void)
 {
-    
     LOG_INF(CONFIG_APP_GREETING_MESSAGE);
 
     while (1)
     {   
-       #if CONFIG_APP_ENABLE_MAIN_LOOP_LOG
-            LOG_INF("Hello from main!");
-       #endif
-       
-        k_sleep(K_MSEC(500));
+        k_sleep(K_MSEC(1));
     }
     
 	return 0;
