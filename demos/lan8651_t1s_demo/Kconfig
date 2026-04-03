@@ -1,0 +1,36 @@
+mainmenu "LAN8651 T1S Demo"
+
+menu "LAN8651 T1S Demo"
+
+config APP_UDP_PORT
+	int "UDP echo port"
+	default 4242
+	range 1 65535
+
+config APP_SERVER_STACK_SIZE
+	int "Server thread stack size"
+	default 2048
+	range 1024 8192
+
+config APP_HTTP_SERVER
+	bool "Enable simple HTTP status server"
+	help
+	  Start a small TCP-based HTTP status server in addition to the UDP echo
+	  server. This is intended as a footprint experiment, not a production
+	  web stack.
+
+config APP_HTTP_PORT
+	int "HTTP status server port"
+	default 8080
+	range 1 65535
+	depends on APP_HTTP_SERVER
+
+config APP_HTTP_MAX_REQUEST
+	int "Maximum HTTP request buffer size"
+	default 512
+	range 128 2048
+	depends on APP_HTTP_SERVER
+
+endmenu
+
+source "Kconfig.zephyr"
