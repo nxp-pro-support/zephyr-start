@@ -187,11 +187,18 @@ int main(void)
 	struct display_buffer_descriptor buf_desc;
 	size_t buf_size = 0;
 	fill_buffer fill_buffer_fnc = NULL;
+	const char *display_name = "zephyr,display";
 
-	display_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
-	if (!device_is_ready(display_dev)) {
+#if DT_HAS_CHOSEN(zephyr_display)
+	display_name = DEVICE_DT_NAME(DT_CHOSEN(zephyr_display));
+	display_dev = device_get_binding(display_name);
+#else
+	display_dev = NULL;
+#endif
+
+	if (display_dev == NULL || !device_is_ready(display_dev)) {
 		LOG_ERR("Device %s not found. Aborting sample.",
-			display_dev->name);
+			display_name);
 #ifdef CONFIG_ARCH_POSIX
 		posix_exit_main(1);
 #else
@@ -253,11 +260,13 @@ int main(void)
 		fill_buffer_fnc = fill_buffer_rgb565;
 		buf_size *= 2;
 		break;
+#ifdef PIXEL_FORMAT_BGR_565
 	case PIXEL_FORMAT_BGR_565:
 		bg_color = 0xFFu;
 		fill_buffer_fnc = fill_buffer_bgr565;
 		buf_size *= 2;
 		break;
+#endif
 	case PIXEL_FORMAT_MONO01:
 		bg_color = 0xFFu;
 		fill_buffer_fnc = fill_buffer_mono01;

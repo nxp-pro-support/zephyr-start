@@ -7,6 +7,8 @@ target_sources(app PRIVATE  src/main.c
                             src/t2.c)
 
 target_sources(app PRIVATE ../../../modules/bunny_build/src/bunny_build.c)
+target_sources(app PRIVATE ../../../modules/bunny_build/src/bunny_build__instr.c)
+target_sources(app PRIVATE ../../../modules/bunny_build/src/bunny_build__psuedo_instr.c)
 target_sources(app PRIVATE ../../../modules/bunny_build/src/ezh_init.c)
 target_sources(app PRIVATE src/ezh_app.c)
 

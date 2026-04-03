@@ -12,7 +12,8 @@ RT_CONFIG_ITEM(main_sleep,
                sizeof(main_sleep_time),
                "10",   //Min
                "5000", //max
-               "500"); //Default
+               "500",
+               RT_CONFIG_LEVEL__USER); //Default
 
 int main(void)
 {

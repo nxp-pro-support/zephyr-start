@@ -10,6 +10,7 @@ set(LVGL_DIR ${ZEPHYR_LVGL_MODULE_DIR})
 
 FILE(GLOB app_sources src/*.c)
 target_sources(app PRIVATE ${app_sources})
+target_sources(app PRIVATE ${LVGL_DIR}/demos/lv_demos.c)
 
 target_include_directories(app PRIVATE
     ${LVGL_DIR}/demos/

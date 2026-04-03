@@ -211,8 +211,6 @@ int main(void)
 	uint16_t counter = 0;
 	k_tid_t rx_tid, get_state_tid;
 	int ret;
-
-	while (1) {	k_sleep(SLEEP_TIME); }
 	
 	if (!device_is_ready(can_dev)) {
 		LOG_INF("CAN: Device %s not ready.\n", can_dev->name);
