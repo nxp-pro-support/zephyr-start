@@ -1,16 +1,11 @@
 manifest:
   defaults:
+    remote: zephyrproject-rtos
     revision: main
 
   remotes:
     - name: zephyrproject-rtos
       url-base: https://github.com/zephyrproject-rtos
-
-    - name: nxp-upstream
-      url-base: https://github.com/nxp-upstream
-    
-    - name: nxp-downstream
-      url-base: https://github.com/nxp-zephyr/
 
     - name: nxp-pro-support
       url-base: https://github.com/nxp-pro-support
@@ -18,17 +13,24 @@ manifest:
     - name: wn
       url-base: https://github.com/wavenumber-eng
 
-  defaults:
-    remote: zephyrproject-rtos
-    revision: main
-
   projects:
 
     - name: zephyr
-      remote:  zephyrproject-rtos
+      remote: zephyrproject-rtos
       repo-path: zephyr
-      revision: main
-      import: true
+      revision: v4.3.0
+      import:
+        name-allowlist:
+          - cmsis
+          - cmsis_6
+          - hal_nxp
+          - liblc3
+          - libmetal
+          - littlefs
+          - mbedtls
+          - lvgl
+          - open-amp
+          - segger
 
     - name: zephyr-module-sample
       remote: nxp-pro-support
