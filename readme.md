@@ -65,7 +65,7 @@ This may take several minutes to pull in all of the dependencies. In this step, 
 
 ![zephyr_start](https://github.com/nxp-pro-support/zephyr-start/assets/152433281/8df1b0aa-721d-4895-a4ae-12a2d6c6ff4d)
 
-##4. Open the folder you created in step 1 in VS Code.
+## 4. Open the folder you created in step 1 in VS Code.
 
 You will see a `zephyr-start` folder in the workspace root. Inside that repository is an `app` folder containing `hello_world` and `demos`.
 
@@ -105,7 +105,7 @@ You should be able to copy i to a folder of another project and it will point to
 
 **Example:**
 
-Here I copy the RT1050.jdebug to the **samples/drives/uart/echo_bot** project and then build/run.
+Here I copy the *RT1050.jdebug* to the **samples/drives/uart/echo_bot** project and then build/run.
 
 ![debug_uart_driver_sample](https://github.com/nxp-pro-support/zephyr-start/assets/152433281/0e4389b4-df8a-4205-a49e-6a86e8a922b4)
 
@@ -113,7 +113,6 @@ Link to Segger note about ozone debug w/ rom bootloader:
 
 https://wiki.segger.com/Debug_on_a_Target_with_Bootloader
 
-'ROM bootloader
 
 If you MCU has a ROM bootloader (or a custom bootloader) that needs to be executed first, simply leave the functions AfterTargetDownload() and AfterTargetReset() empty (but not commented out!). This will override Ozone's default and nothing will be executed so the ROM bootloader can run without interference and jump to the application space where per default Ozone will then stop at main.'
 
