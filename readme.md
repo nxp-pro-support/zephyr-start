@@ -1,6 +1,6 @@
 # Background
 
-This repository contains a simple example of a zephyr application as a west manifest file.
+This repository contains a example of a zephyr application as a west manifest file.
 
 This approach allows new developers to setup an application with minimal effort.  The manifest file will pull in a copy of zephyr and another libraries/repos specified in the west.yml.
 
@@ -17,10 +17,40 @@ https://blog.golioth.io/improving-zephyr-project-structure-with-manifest-files/
 
 # Setup
 
-1. Create a working folder on your local machine for the west workspace.
+This assumes you have either installed all of the necessary tooling via the NXP MCUXpresso installer:
+
+https://mcuxpresso.nxp.com/mcux-vscode/latest/html/MCUXpresso-Installer.html
+
+or your followed the official Zephyr documentation:
+
+https://docs.zephyrproject.org/latest/develop/getting_started/index.html
 
 
-2. cd into that folder and run:
+## 0. python .venv
+
+If you installed zephyr w/ the MCUXpresso installer, you need to activate the python .venv it created before running commands from the termimal.
+
+
+Windows
+%userprofile%/.mcuxpressotools/.venv/Scripts/activate.bat
+
+Linux
+source ~/.mcuxpressotools/.venv/bin/activate
+
+IF you followed the official zephyr install from https://docs.zephyrproject.org/latest/develop/getting_started/index.html,  make sure to activate any .venv you created.
+
+
+
+## 1. Create a working folder on your local machine for the west workspace.
+
+
+Example:
+
+```
+mkdir zephyr-start-workspace
+```
+
+## 2. cd into that folder and run:
 
 
 ```
@@ -29,31 +59,29 @@ west init -m https://github.com/nxp-pro-support/zephyr-start --mr main
 
 This initializes the folder as a west/zephyr workspace registered to our application repository. The application repository is checked out at `zephyr-start` in the workspace root.
 
-3.  Run `west update`.   
+## 3.  Run `west update`.   
 
 This may take several minutes to pull in all of the dependencies. In this step,  west will look at the manifest and pull down all the dependencies.   In this case, the dependecies are the vanilla Zephyr repository and our sample modules/library repository. It is quite large and can take several minutes but only has to be initialized once.  Future calls to west update are much quicker.
 
 ![zephyr_start](https://github.com/nxp-pro-support/zephyr-start/assets/152433281/8df1b0aa-721d-4895-a4ae-12a2d6c6ff4d)
 
-4.) Open the folder you created in step 1 in VS Code.
+##4. Open the folder you created in step 1 in VS Code.
 
 You will see a `zephyr-start` folder in the workspace root. Inside that repository is an `app` folder containing `hello_world` and `demos`.
 
-Right click on the `zephyr-start/app/hello_world` folder and `Open in Integrated Terminal`.
+Go into the folder `zephyr-start/app/hello_world` in your workspace and run the command :
 
-Run the command 
-
-`west build -bmimxrt1050_evk --pristine`
+`west build -b mimxrt1050_evk --pristine`
 
 This will build the code for the RT1050 EVK.  *pristine* tells west to start fresh.   Normally,  west builds without the pristine switch will only build what things that have changed.
 
 This repository also includes a local out-of-tree board example in `boards/nxp/rt1050_custom`. From the workspace root you can build it with:
 
-`west build -b rt1050_custom zephyr-start/app/hello_world -d build/rt1050_custom --pristine`
+`west build -b rt1050_custom  --pristine`
 
 ![build_hello_world](https://github.com/nxp-pro-support/zephyr-start/assets/152433281/00d49408-9aa8-410d-a03b-b8b575e245ca)
 
-5.)  Debug with Segger Ozone
+## 5.  Debug with Segger Ozone
 
 In this workflow, I show using Segger Ozone to debug an application after a build.   
 
@@ -73,7 +101,7 @@ The i.MX RT series parts are flashless with a ROM bootloader.   There are a coup
 
 You can use the RT1050.jdebug as a template to copy to other example folders. In the future, I can show you how create the jdebug from the ozone new project wizard.
 
-You should be able to copy it to a folder of another project and it will point to the build/zephyr/zephyr.elf in the application folder.
+You should be able to copy i to a folder of another project and it will point to the build/zephyr/zephyr.elf in the application folder.
 
 **Example:**
 
@@ -87,7 +115,7 @@ https://wiki.segger.com/Debug_on_a_Target_with_Bootloader
 
 'ROM bootloader
 
-Should your setup be that you have a bootloader in ROM that needs to be executed first simply leave the functions AfterTargetDownload() and AfterTargetReset() empty (but not commented out!). This will override Ozone's default and nothing will be executed so the ROM bootloader can run without interference and jump to the application space where per default Ozone will then stop at main.'
+If you MCU has a ROM bootloader (or a custom bootloader) that needs to be executed first, simply leave the functions AfterTargetDownload() and AfterTargetReset() empty (but not commented out!). This will override Ozone's default and nothing will be executed so the ROM bootloader can run without interference and jump to the application space where per default Ozone will then stop at main.'
 
 
 

@@ -23,7 +23,7 @@ void OnProjectLoad (void) {
   // Dialog-generated settings
   //
   Project.AddPathSubstitute ("C:/zephyr-training/zephyr-start/hello_world", "$(ProjectDir)");
-  Project.AddPathSubstitute ("c:/zephyr-training/zephyr-start/hello_world", "$(ProjectDir)");
+
   Project.SetDevice ("MCXN947_M33_0");
   Project.SetHostIF ("USB", "");
   Project.SetTargetIF ("SWD");
