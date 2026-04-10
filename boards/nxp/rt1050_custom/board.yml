@@ -1,0 +1,6 @@
+board:
+  name: rt1050_custom
+  full_name: RT1050 Custom
+  vendor: nxp
+  socs:
+    - name: mimxrt1052

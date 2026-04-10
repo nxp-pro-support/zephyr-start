@@ -1,0 +1,1 @@
+# Root CMake entry point for local board discovery via zephyr/module.yml.

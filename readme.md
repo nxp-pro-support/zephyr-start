@@ -27,7 +27,7 @@ https://blog.golioth.io/improving-zephyr-project-structure-with-manifest-files/
 west init -m https://github.com/nxp-pro-support/zephyr-start --mr main
 ```
 
-This initializes the folder as a west/zephyr workspace registered to our application repository. The application repository is checked out at `app` in the workspace root.
+This initializes the folder as a west/zephyr workspace registered to our application repository. The application repository is checked out at `zephyr-start` in the workspace root.
 
 3.  Run `west update`.   
 
@@ -37,15 +37,19 @@ This may take several minutes to pull in all of the dependencies. In this step, 
 
 4.) Open the folder you created in step 1 in VS Code.
 
-You will see an `app` folder in the workspace root which contains `hello_world` and `demos`.
+You will see a `zephyr-start` folder in the workspace root. Inside that repository is an `app` folder containing `hello_world` and `demos`.
 
-Right click on the `app/hello_world` folder and `Open in Integrated Terminal`.
+Right click on the `zephyr-start/app/hello_world` folder and `Open in Integrated Terminal`.
 
 Run the command 
 
 `west build -bmimxrt1050_evk --pristine`
 
 This will build the code for the RT1050 EVK.  *pristine* tells west to start fresh.   Normally,  west builds without the pristine switch will only build what things that have changed.
+
+This repository also includes a local out-of-tree board example in `boards/nxp/rt1050_custom`. From the workspace root you can build it with:
+
+`west build -b rt1050_custom zephyr-start/app/hello_world -d build/rt1050_custom --pristine`
 
 ![build_hello_world](https://github.com/nxp-pro-support/zephyr-start/assets/152433281/00d49408-9aa8-410d-a03b-b8b575e245ca)
 
@@ -59,7 +63,7 @@ Segger Ozone is a stand alone debugger that works with a j-link (or the EVK’s 
 
 Inside of the “hello_world” application is a file *RT1050.jdebug* which is already configured to point to the output of the hello world build:
 
-*app/hello_world/build/zephyr/zephyr.elf*
+*zephyr-start/app/hello_world/build/zephyr/zephyr.elf*
 
 ![debug_w_ozone](https://github.com/nxp-pro-support/zephyr-start/assets/152433281/a989f9bd-2523-4e7b-8b55-adedeb7094d7)
 
