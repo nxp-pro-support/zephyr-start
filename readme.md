@@ -17,7 +17,7 @@ https://blog.golioth.io/improving-zephyr-project-structure-with-manifest-files/
 
 # Setup
 
-1. Create a working folder on your local machine i.e. 'zephyr-start'
+1. Create a working folder on your local machine for the west workspace.
 
 
 2. cd into that folder and run:
@@ -27,7 +27,7 @@ https://blog.golioth.io/improving-zephyr-project-structure-with-manifest-files/
 west init -m https://github.com/nxp-pro-support/zephyr-start --mr main
 ```
 
-This initializes the folder as a west/zephyr workspace registered to our application repository.
+This initializes the folder as a west/zephyr workspace registered to our application repository. The application repository is checked out at `app` in the workspace root.
 
 3.  Run `west update`.   
 
@@ -35,11 +35,11 @@ This may take several minutes to pull in all of the dependencies. In this step, 
 
 ![zephyr_start](https://github.com/nxp-pro-support/zephyr-start/assets/152433281/8df1b0aa-721d-4895-a4ae-12a2d6c6ff4d)
 
-4.) Open the folder your created in step 1 in vs code.
+4.) Open the folder you created in step 1 in VS Code.
 
-You will see another folder of the same name `zephyr-start` which has a hello world folder.
+You will see an `app` folder in the workspace root which contains `hello_world` and `demos`.
 
-Right click on the hello world folder an `open in integrated terminal`
+Right click on the `app/hello_world` folder and `Open in Integrated Terminal`.
 
 Run the command 
 
@@ -59,7 +59,7 @@ Segger Ozone is a stand alone debugger that works with a j-link (or the EVK’s 
 
 Inside of the “hello_world” application is a file *RT1050.jdebug* which is already configured to point to the output of the hello world build:
 
-*zephyr-start/hello-world/build/zephyr/zephyr.elf*
+*app/hello_world/build/zephyr/zephyr.elf*
 
 ![debug_w_ozone](https://github.com/nxp-pro-support/zephyr-start/assets/152433281/a989f9bd-2523-4e7b-8b55-adedeb7094d7)
 

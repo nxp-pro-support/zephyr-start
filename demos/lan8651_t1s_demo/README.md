@@ -62,15 +62,15 @@ for control:
 From the workspace root:
 
 ```powershell
-west build -p always -b frdm_mcxa156 zephyr-start\demos\lan8651_t1s_demo -d build\lan8651_mcxa156
-west build -p always -b frdm_mcxa266 zephyr-start\demos\lan8651_t1s_demo -d build\lan8651_mcxa266
+west build -p always -b frdm_mcxa156 app\demos\lan8651_t1s_demo -d build\lan8651_mcxa156
+west build -p always -b frdm_mcxa266 app\demos\lan8651_t1s_demo -d build\lan8651_mcxa266
 ```
 
 Optional HTTP footprint variant:
 
 ```powershell
-west build -p always -b frdm_mcxa156 zephyr-start\demos\lan8651_t1s_demo -d build\lan8651_mcxa156_http -- -DEXTRA_CONF_FILE=web.conf
-west build -p always -b frdm_mcxa266 zephyr-start\demos\lan8651_t1s_demo -d build\lan8651_mcxa266_http -- -DEXTRA_CONF_FILE=web.conf
+west build -p always -b frdm_mcxa156 app\demos\lan8651_t1s_demo -d build\lan8651_mcxa156_http -- -DEXTRA_CONF_FILE=web.conf
+west build -p always -b frdm_mcxa266 app\demos\lan8651_t1s_demo -d build\lan8651_mcxa266_http -- -DEXTRA_CONF_FILE=web.conf
 ```
 
 ## Test
