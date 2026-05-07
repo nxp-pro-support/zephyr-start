@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FRDM CAN Shell Monitor</title>
+  <style>
+    :root {
+      --bg: #050806;
+      --panel: #0c120e;
+      --control: #111a13;
+      --control-hover: #18251b;
+      --text: #d7ffe0;
+      --muted: #7da887;
+      --terminal-bg: #020604;
+      --green: #00ff5c;
+      --yellow: #ffee00;
+      --red: #ff5151;
+      --line: #17231a;
+      --control-h: 32px;
+      font-family: Consolas, "Cascadia Mono", "Courier New", monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-width: 1280px;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Consolas, "Cascadia Mono", "Courier New", monospace;
+    }
+
+    .app {
+      height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 10px;
+      padding: 12px;
+    }
+
+    .topbar,
+    .panel {
+      background: var(--panel);
+      border: 0;
+      border-radius: 0;
+      padding: 10px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .columns {
+      display: grid;
+      grid-template-columns: minmax(680px, 1fr) minmax(520px, 0.75fr);
+      gap: 10px;
+      min-height: 0;
+    }
+
+    .left,
+    .right {
+      min-height: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .left {
+      grid-template-rows: auto auto minmax(0, 1fr);
+    }
+
+    .right {
+      grid-template-rows: minmax(320px, 50vh) auto minmax(0, 1fr);
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    h2,
+    .title {
+      margin: 0 0 8px;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--green);
+    }
+
+    label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    input,
+    select,
+    button {
+      height: var(--control-h);
+      border: 0;
+      border-radius: 0;
+      font: inherit;
+      color: var(--text);
+    }
+
+    input,
+    select {
+      background: var(--control);
+      padding: 4px 8px;
+    }
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--green);
+    }
+
+    button {
+      background: var(--control);
+      color: var(--green);
+      padding: 4px 10px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--control-hover);
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: default;
+    }
+
+    .status {
+      color: var(--yellow);
+      min-height: 18px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .status.green { color: var(--green); }
+    .status.bad { color: var(--red); }
+    .muted { color: var(--muted); }
+
+    .w-port { width: 190px; }
+    .w-target { width: 170px; }
+    .w-device { width: 72px; }
+    .w-bitrate { width: 104px; }
+    .w-id { width: 88px; }
+    .w-data { width: 260px; }
+
+    .traffic-wrap {
+      min-height: 0;
+      overflow: auto;
+      background: var(--terminal-bg);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      padding: 5px 7px;
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+      text-align: left;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #09110b;
+      color: var(--green);
+    }
+
+    tr:hover td {
+      background: #0b160f;
+    }
+
+    .id-cell {
+      color: var(--yellow);
+      font-weight: 800;
+    }
+
+    .data-cell {
+      color: var(--green);
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .terminal-control {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .terminal,
+    .terminal-input {
+      background: var(--terminal-bg);
+      color: var(--green);
+      font-size: 13px;
+    }
+
+    .terminal {
+      min-height: 0;
+      overflow: auto;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      padding: 10px;
+      line-height: 1.35;
+    }
+
+    .terminal-input {
+      width: 100%;
+    }
+
+    .camera-card {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 8px;
+      min-height: 0;
+    }
+
+    .camera-frame {
+      min-height: 0;
+      height: 100%;
+      overflow: hidden;
+      background: var(--terminal-bg);
+      display: grid;
+      place-items: center;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: center;
+      background: var(--terminal-bg);
+    }
+
+    video.mirrored {
+      transform: scaleX(-1);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <strong>FRDM CAN Shell Monitor</strong>
+      <label>Port <input id="portLabel" class="w-port" value="Web Serial" readonly></label>
+      <label>Target
+        <select id="portTarget" class="w-target">
+          <option value="zephyr-cdc">Zephyr CDC ACM</option>
+          <option value="jlink-cdc">J-Link CDC UART</option>
+          <option value="auto">FRDM auto</option>
+          <option value="any">Any serial port</option>
+        </select>
+      </label>
+      <button id="connect">Connect</button>
+      <button id="remembered">Remembered</button>
+      <button id="disconnect" disabled>Disconnect</button>
+      <span id="connectionStatus" class="status muted">Disconnected</span>
+    </div>
+
+    <div class="columns">
+      <div class="left">
+        <section class="panel">
+          <h2>CAN Setup</h2>
+          <div class="row">
+            <label>Device <input id="canDevice" class="w-device" value="can0"></label>
+            <label>Bitrate <input id="bitrate" class="w-bitrate" type="number" value="500000"></label>
+            <label>Mode
+              <select id="canMode">
+                <option value="normal">normal</option>
+                <option value="listen-only">listen-only</option>
+                <option value="loopback">loopback</option>
+              </select>
+            </label>
+            <button id="showCan">Show</button>
+            <button id="applyCan">Apply</button>
+            <button id="startCan">Start</button>
+            <button id="stopCan">Stop</button>
+            <span id="setupStatus" class="status green"></span>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Capture</h2>
+          <div class="row">
+            <label><input id="stdFilter" type="checkbox" checked> Standard IDs</label>
+            <label><input id="extFilter" type="checkbox" checked> Extended IDs</label>
+            <button id="startCapture">Start Capture</button>
+            <button id="stopCapture" disabled>Stop Capture</button>
+            <button id="clearFrames">Clear Frames</button>
+            <span id="captureStatus" class="status green">0 frames</span>
+          </div>
+        </section>
+
+        <section class="panel traffic-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Timestamp</th>
+                <th>Dev</th>
+                <th>Flags</th>
+                <th>ID</th>
+                <th>DLC</th>
+                <th>Data</th>
+              </tr>
+            </thead>
+            <tbody id="frames"></tbody>
+          </table>
+        </section>
+      </div>
+
+      <div class="right">
+        <section class="panel camera-card">
+          <div>
+            <h2>Board Camera</h2>
+            <div class="row">
+              <button id="startCamera">Start Camera</button>
+              <button id="stopCamera" disabled>Stop Camera</button>
+              <select id="cameraSelect" style="min-width: 180px"></select>
+              <label><input id="mirrorCamera" type="checkbox"> Mirror</label>
+              <span id="cameraStatus" class="status muted">Camera stopped</span>
+            </div>
+          </div>
+          <div class="camera-frame">
+            <video id="boardCamera" autoplay muted playsinline></video>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Send / Shell</h2>
+          <div class="row">
+            <label>ID <input id="txId" class="w-id" value="123"></label>
+            <label>Data <input id="txData" class="w-data" value="11 22 33 44"></label>
+            <label><input id="txExt" type="checkbox"> Extended</label>
+            <label><input id="txRtr" type="checkbox"> RTR</label>
+            <button id="sendFrame">Send</button>
+          </div>
+          <div class="terminal-control" style="margin-top:8px">
+            <input id="manualCommand" class="terminal-input" value="can show can0">
+            <button id="sendCommand">Send</button>
+            <button id="clearTerminal">Clear</button>
+          </div>
+        </section>
+        <div id="terminal" class="terminal" role="log" aria-live="polite"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+    const PROMPTS = ["frdm-can:~$", "frdm-cdc:~$", "frdm-tool:~$", "uart:~$"];
+    const KNOWN_PORTS = {
+      "zephyr-cdc": {
+        label: "Zephyr CDC ACM",
+        filter: { usbVendorId: 0x2fe3, usbProductId: 0x0004 },
+      },
+      "jlink-cdc": {
+        label: "J-Link CDC UART",
+        filter: { usbVendorId: 0x1366, usbProductId: 0x1024 },
+      },
+    };
+
+    let port = null;
+    let reader = null;
+    let writer = null;
+    let pending = null;
+    let commandTail = Promise.resolve();
+    let terminalChars = 0;
+    let lineBuffer = "";
+    let frameCount = 0;
+    let filterIds = [];
+    let cameraStream = null;
+
+    const el = id => document.getElementById(id);
+
+    function stripAnsi(text) {
+      return text.replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, "");
+    }
+
+    function setStatus(id, text, cls = "") {
+      const node = el(id);
+      node.textContent = text;
+      node.className = `status ${cls}`.trim();
+    }
+
+    function selectedTarget() {
+      return el("portTarget").value || "zephyr-cdc";
+    }
+
+    function selectedFilters() {
+      const target = selectedTarget();
+      if (target === "any") return [];
+      if (target === "auto") return Object.values(KNOWN_PORTS).map(item => item.filter);
+      return KNOWN_PORTS[target] ? [KNOWN_PORTS[target].filter] : [];
+    }
+
+    function getPortInfo(selectedPort) {
+      return selectedPort && selectedPort.getInfo ? selectedPort.getInfo() : {};
+    }
+
+    function knownPortKey(selectedPort) {
+      const info = getPortInfo(selectedPort);
+      for (const [key, item] of Object.entries(KNOWN_PORTS)) {
+        if (info.usbVendorId === item.filter.usbVendorId &&
+            info.usbProductId === item.filter.usbProductId) {
+          return key;
+        }
+      }
+      return "";
+    }
+
+    function describePort(selectedPort) {
+      const info = getPortInfo(selectedPort);
+      const key = knownPortKey(selectedPort);
+      const label = key ? KNOWN_PORTS[key].label : "Serial port";
+      const vid = info.usbVendorId === undefined ? "----" : info.usbVendorId.toString(16).padStart(4, "0");
+      const pid = info.usbProductId === undefined ? "----" : info.usbProductId.toString(16).padStart(4, "0");
+      return `${label} ${vid}:${pid}`;
+    }
+
+    function portMatchesTarget(candidate) {
+      const target = selectedTarget();
+      if (target === "any") return true;
+      const key = knownPortKey(candidate);
+      return target === "auto" ? Boolean(key) : key === target;
+    }
+
+    function setConnected(connected) {
+      el("connect").disabled = connected;
+      el("remembered").disabled = connected;
+      el("disconnect").disabled = !connected;
+      setStatus("connectionStatus", connected ? "Connected" : "Disconnected", connected ? "green" : "muted");
+    }
+
+    function appendTerminal(text) {
+      const clean = stripAnsi(text).replace(/\r/g, "");
+      const terminal = el("terminal");
+      terminal.append(document.createTextNode(clean));
+      terminalChars += clean.length;
+      while (terminalChars > 100000 && terminal.firstChild) {
+        terminalChars -= terminal.firstChild.textContent.length;
+        terminal.firstChild.remove();
+      }
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function responseHasPrompt(response) {
+      const clean = stripAnsi(response);
+      return PROMPTS.some(prompt => clean.includes(prompt));
+    }
+
+    async function openPort(selectedPort) {
+      port = selectedPort;
+      await port.open({ baudRate: 115200 });
+      if (port.setSignals) {
+        await port.setSignals({ dataTerminalReady: true, requestToSend: true });
+      }
+      writer = port.writable.getWriter();
+      el("portLabel").value = describePort(selectedPort);
+      setConnected(true);
+      appendTerminal("[connected]\n");
+      readLoop();
+      await writer.write(encoder.encode("\r\n"));
+    }
+
+    async function connectPrompt() {
+      try {
+        const filters = selectedFilters();
+        const options = filters.length ? { filters } : {};
+        const selectedPort = await navigator.serial.requestPort(options);
+        await openPort(selectedPort);
+      } catch (err) {
+        setStatus("connectionStatus", `Connect failed: ${err.message}`, "bad");
+      }
+    }
+
+    async function connectRemembered() {
+      try {
+        const ports = await navigator.serial.getPorts();
+        const selectedPort = ports.find(portMatchesTarget);
+        if (!selectedPort) {
+          setStatus("connectionStatus", "No remembered port matches target", "bad");
+          return;
+        }
+        await openPort(selectedPort);
+      } catch (err) {
+        setStatus("connectionStatus", `Connect failed: ${err.message}`, "bad");
+      }
+    }
+
+    async function disconnect() {
+      try {
+        if (reader) await reader.cancel();
+      } catch (_) {}
+      try {
+        if (writer) {
+          writer.releaseLock();
+          writer = null;
+        }
+      } catch (_) {}
+      try {
+        if (port) {
+          if (port.setSignals) {
+            await port.setSignals({ dataTerminalReady: false, requestToSend: false });
+          }
+          await port.close();
+        }
+      } catch (_) {}
+      port = null;
+      pending = null;
+      el("portLabel").value = "Web Serial";
+      setConnected(false);
+      appendTerminal("\n[disconnected]\n");
+    }
+
+    async function readLoop() {
+      while (port && port.readable) {
+        reader = port.readable.getReader();
+        try {
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            const text = decoder.decode(value);
+            appendTerminal(text);
+            processLines(stripAnsi(text));
+            if (pending) {
+              pending.response += text;
+              if (responseHasPrompt(pending.response)) pending.finish();
+            }
+          }
+        } catch (err) {
+          appendTerminal(`\n[serial read error] ${err.message}\n`);
+        } finally {
+          try { reader.releaseLock(); } catch (_) {}
+        }
+      }
+    }
+
+    function runCommand(command, timeoutMs = 2500) {
+      const task = () => runCommandUnlocked(command, timeoutMs);
+      const result = commandTail.then(task, task);
+      commandTail = result.catch(() => {});
+      return result;
+    }
+
+    function runCommandUnlocked(command, timeoutMs) {
+      command = String(command || "").trim();
+      if (!command) return Promise.resolve("");
+      if (!writer) return Promise.reject(new Error("serial port is not connected"));
+      appendTerminal(`\n> ${command}\n`);
+      return new Promise(async (resolve, reject) => {
+        let timer = null;
+        pending = {
+          response: "",
+          finish() {
+            if (timer) clearTimeout(timer);
+            const response = pending.response;
+            pending = null;
+            resolve(response);
+          },
+        };
+        timer = setTimeout(() => {
+          if (!pending) return;
+          const response = pending.response;
+          pending = null;
+          resolve(response);
+        }, timeoutMs);
+        try {
+          await writer.write(encoder.encode(command + "\r\n"));
+        } catch (err) {
+          if (timer) clearTimeout(timer);
+          pending = null;
+          reject(err);
+        }
+      });
+    }
+
+    async function bestEffort(command, timeoutMs = 1500) {
+      try {
+        return await runCommand(command, timeoutMs);
+      } catch (_) {
+        return "";
+      }
+    }
+
+    function canDevice() {
+      return el("canDevice").value.trim() || "can0";
+    }
+
+    async function showCan() {
+      try {
+        await runCommand(`can show ${canDevice()}`, 2500);
+        setStatus("setupStatus", "CAN show complete", "green");
+      } catch (err) {
+        setStatus("setupStatus", `Show failed: ${err.message}`, "bad");
+      }
+    }
+
+    async function applyCan() {
+      const dev = canDevice();
+      try {
+        await bestEffort(`can stop ${dev}`);
+        await runCommand(`can bitrate ${dev} ${Number(el("bitrate").value || 500000)}`, 2500);
+        await runCommand(`can mode ${dev} ${el("canMode").value}`, 2500);
+        setStatus("setupStatus", "Bitrate and mode applied", "green");
+      } catch (err) {
+        setStatus("setupStatus", `Apply failed: ${err.message}`, "bad");
+      }
+    }
+
+    async function startCan() {
+      try {
+        await runCommand(`can start ${canDevice()}`, 2000);
+        setStatus("setupStatus", "CAN controller started", "green");
+      } catch (err) {
+        setStatus("setupStatus", `Start failed: ${err.message}`, "bad");
+      }
+    }
+
+    async function stopCan() {
+      try {
+        await runCommand(`can stop ${canDevice()}`, 2000);
+        setStatus("setupStatus", "CAN controller stopped", "green");
+      } catch (err) {
+        setStatus("setupStatus", `Stop failed: ${err.message}`, "bad");
+      }
+    }
+
+    function parseFilterId(response) {
+      const match = stripAnsi(response).match(/filter ID:\s*(-?\d+)/);
+      return match ? Number(match[1]) : null;
+    }
+
+    async function startCapture() {
+      const dev = canDevice();
+      filterIds = [];
+      try {
+        await bestEffort(`can stop ${dev}`);
+        await runCommand(`can bitrate ${dev} ${Number(el("bitrate").value || 500000)}`, 2500);
+        await runCommand(`can mode ${dev} ${el("canMode").value}`, 2500);
+        if (el("stdFilter").checked) {
+          const response = await runCommand(`can filter add ${dev} 000 000`, 2500);
+          const id = parseFilterId(response);
+          if (id !== null) filterIds.push(id);
+        }
+        if (el("extFilter").checked) {
+          const response = await runCommand(`can filter add ${dev} -e 00000000 00000000`, 2500);
+          const id = parseFilterId(response);
+          if (id !== null) filterIds.push(id);
+        }
+        await runCommand(`can start ${dev}`, 2000);
+        el("startCapture").disabled = true;
+        el("stopCapture").disabled = false;
+        setStatus("captureStatus", `CAN shell capture running, ${filterIds.length} filter(s), ${frameCount} frames`, "green");
+      } catch (err) {
+        setStatus("captureStatus", `Capture failed: ${err.message}`, "bad");
+      }
+    }
+
+    async function stopCapture() {
+      const dev = canDevice();
+      try {
+        for (const id of filterIds) {
+          await bestEffort(`can filter remove ${dev} ${id}`, 1500);
+        }
+        filterIds = [];
+        await bestEffort(`can stop ${dev}`, 1500);
+        el("startCapture").disabled = false;
+        el("stopCapture").disabled = true;
+        setStatus("captureStatus", `Capture stopped, ${frameCount} frames`, "green");
+      } catch (err) {
+        setStatus("captureStatus", `Stop capture failed: ${err.message}`, "bad");
+      }
+    }
+
+    async function sendFrame() {
+      const dev = canDevice();
+      const id = el("txId").value.trim() || "123";
+      const data = el("txData").value.trim();
+      const flags = `${el("txExt").checked ? "-e " : ""}${el("txRtr").checked ? "-r " : ""}`;
+      try {
+        await runCommand(`can send ${dev} ${flags}${id}${data ? " " + data : ""}`, 3000);
+      } catch (err) {
+        setStatus("setupStatus", `Send failed: ${err.message}`, "bad");
+      }
+    }
+
+    function processLines(text) {
+      lineBuffer += text.replace(/\r/g, "\n");
+      const lines = lineBuffer.split("\n");
+      lineBuffer = lines.pop() || "";
+      for (const line of lines) parseCanFrameLine(line);
+    }
+
+    function parseCanFrameLine(line) {
+      const clean = line.trim();
+      if (!clean) return;
+      const match = clean.match(/^(?:\((\d+)\)\s+)?(\S+)\s+(?:(--|[BP-]{2})\s+)?([0-9a-fA-F]{3}|[0-9a-fA-F]{8})\s+\[\s*(\d+)\]\s*(.*)$/);
+      if (!match) return;
+      addFrame({
+        timestamp: match[1] || "",
+        dev: match[2],
+        flags: match[3] || "--",
+        id: match[4].toLowerCase(),
+        dlc: match[5],
+        data: (match[6] || "").trim(),
+      });
+    }
+
+    function addFrame(frame) {
+      frameCount++;
+      const tbody = el("frames");
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${frameCount}</td>
+        <td>${escapeHtml(frame.timestamp)}</td>
+        <td>${escapeHtml(frame.dev)}</td>
+        <td>${escapeHtml(frame.flags)}</td>
+        <td class="id-cell">${escapeHtml(frame.id)}</td>
+        <td>${escapeHtml(frame.dlc)}</td>
+        <td class="data-cell">${escapeHtml(frame.data)}</td>
+      `;
+      tbody.appendChild(row);
+      while (tbody.children.length > 800) tbody.firstElementChild.remove();
+      row.scrollIntoView({ block: "nearest" });
+      const running = !el("startCapture").disabled;
+      setStatus(
+        "captureStatus",
+        `${running ? "Capture running" : "Capture stopped"}, ${filterIds.length} filter(s), ${frameCount} frames`,
+        "green",
+      );
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, ch => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      }[ch]));
+    }
+
+    function clearFrames() {
+      el("frames").replaceChildren();
+      frameCount = 0;
+      setStatus("captureStatus", `Capture ${el("startCapture").disabled ? "running" : "stopped"}, ${filterIds.length} filter(s), 0 frames`, "green");
+    }
+
+    async function refreshCameraList() {
+      if (!navigator.mediaDevices?.enumerateDevices) {
+        setStatus("cameraStatus", "Camera API is not available in this browser.", "bad");
+        return;
+      }
+
+      const select = el("cameraSelect");
+      const previous = select.value;
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const cameras = devices.filter(device => device.kind === "videoinput");
+
+      select.innerHTML = "";
+      cameras.forEach((camera, index) => {
+        const option = document.createElement("option");
+        option.value = camera.deviceId;
+        option.textContent = camera.label || `Camera ${index + 1}`;
+        select.appendChild(option);
+      });
+
+      if (previous && [...select.options].some(option => option.value === previous)) {
+        select.value = previous;
+      }
+
+      if (!cameras.length) {
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "No cameras found";
+        select.appendChild(option);
+      }
+    }
+
+    async function startCamera() {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setStatus("cameraStatus", "Camera API is not available in this browser.", "bad");
+        return;
+      }
+
+      stopCamera();
+
+      const deviceId = el("cameraSelect").value;
+      const constraints = {
+        video: deviceId
+          ? { deviceId: { exact: deviceId }, width: { ideal: 1280 }, height: { ideal: 720 } }
+          : { width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false,
+      };
+
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+        el("boardCamera").srcObject = cameraStream;
+        el("startCamera").disabled = true;
+        el("stopCamera").disabled = false;
+        setStatus("cameraStatus", "Camera running", "green");
+        await refreshCameraList();
+      } catch (err) {
+        cameraStream = null;
+        el("boardCamera").srcObject = null;
+        setStatus("cameraStatus", `Camera failed: ${err.message}`, "bad");
+      }
+    }
+
+    function stopCamera() {
+      if (cameraStream) {
+        for (const track of cameraStream.getTracks()) {
+          track.stop();
+        }
+      }
+      cameraStream = null;
+      el("boardCamera").srcObject = null;
+      el("startCamera").disabled = false;
+      el("stopCamera").disabled = true;
+      setStatus("cameraStatus", "Camera stopped", "muted");
+    }
+
+    function updateCameraMirror() {
+      el("boardCamera").classList.toggle("mirrored", el("mirrorCamera").checked);
+    }
+
+    function wireEvents() {
+      el("connect").addEventListener("click", connectPrompt);
+      el("remembered").addEventListener("click", connectRemembered);
+      el("disconnect").addEventListener("click", disconnect);
+      el("startCamera").addEventListener("click", startCamera);
+      el("stopCamera").addEventListener("click", stopCamera);
+      el("cameraSelect").addEventListener("change", () => {
+        if (cameraStream) startCamera();
+      });
+      el("mirrorCamera").addEventListener("change", updateCameraMirror);
+      el("showCan").addEventListener("click", showCan);
+      el("applyCan").addEventListener("click", applyCan);
+      el("startCan").addEventListener("click", startCan);
+      el("stopCan").addEventListener("click", stopCan);
+      el("startCapture").addEventListener("click", startCapture);
+      el("stopCapture").addEventListener("click", stopCapture);
+      el("clearFrames").addEventListener("click", clearFrames);
+      el("sendFrame").addEventListener("click", sendFrame);
+      el("sendCommand").addEventListener("click", () => runCommand(el("manualCommand").value));
+      el("manualCommand").addEventListener("keydown", event => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          runCommand(el("manualCommand").value);
+        }
+      });
+      el("clearTerminal").addEventListener("click", () => {
+        el("terminal").replaceChildren();
+        terminalChars = 0;
+      });
+    }
+
+    function init() {
+      wireEvents();
+      setConnected(false);
+      if (!("serial" in navigator)) {
+        setStatus("connectionStatus", "Web Serial is not available. Use Chrome or Edge.", "bad");
+      }
+      refreshCameraList().catch(err => {
+        setStatus("cameraStatus", `Camera list failed: ${err.message}`, "bad");
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>

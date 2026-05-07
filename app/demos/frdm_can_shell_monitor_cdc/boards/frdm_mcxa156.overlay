@@ -1,0 +1,29 @@
+/*
+ * FRDM-MCXA156 USB CDC shell routing plus CAN shell-friendly naming.
+ */
+
+/ {
+	chosen {
+		zephyr,console = &cdc_acm_uart0;
+		zephyr,shell-uart = &cdc_acm_uart0;
+		zephyr,uart-mcumgr = &cdc_acm_uart0;
+		zephyr,canbus = &flexcan0;
+	};
+
+	aliases {
+		sys-can = &flexcan0;
+	};
+};
+
+&zephyr_udc0 {
+	cdc_acm_uart0: cdc_acm_uart0 {
+		compatible = "zephyr,cdc-acm-uart";
+		label = "FRDM CAN Shell CDC ACM";
+	};
+};
+
+can0: &flexcan0 {
+	status = "okay";
+	bitrate = <500000>;
+	sample-point = <875>;
+};

@@ -1,0 +1,15 @@
+/ {
+	chosen {
+		zephyr,canbus = &flexcan0;
+	};
+
+	aliases {
+		sys-can = &flexcan0;
+	};
+};
+
+&flexcan0 {
+	status = "okay";
+	bitrate = <500000>;
+	sample-point = <875>;
+};

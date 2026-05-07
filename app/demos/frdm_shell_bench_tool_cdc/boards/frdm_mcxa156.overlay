@@ -1,0 +1,59 @@
+/*
+ * FRDM-MCXA156 USB CDC shell routing plus friendly shell-facing names.
+ */
+
+/ {
+	chosen {
+		zephyr,console = &cdc_acm_uart0;
+		zephyr,shell-uart = &cdc_acm_uart0;
+		zephyr,uart-mcumgr = &cdc_acm_uart0;
+	};
+
+	aliases {
+		sys-i2c = &lpi2c0;
+		sys-io = &gpio3;
+	};
+};
+
+&zephyr_udc0 {
+	cdc_acm_uart0: cdc_acm_uart0 {
+		compatible = "zephyr,cdc-acm-uart";
+		label = "FRDM Shell CDC ACM";
+	};
+};
+
+/* The Arduino D14/D15 pins share pads with I3C0 on the stock board file. */
+&i3c0 {
+	status = "disabled";
+};
+
+sys_i2c: &lpi2c0 {
+	status = "okay";
+	clock-frequency = <I2C_BITRATE_STANDARD>;
+};
+
+gpio_i2c_header: &gpio0 {
+	status = "okay";
+	gpio-line-names = "", "", "", "", "", "", "SW3", "", "", "", "", "", "", "", "", "",
+			  "ARD_D14_SDA", "ARD_D15_SCL";
+};
+
+gpio_arduino_a: &gpio1 {
+	status = "okay";
+	gpio-line-names = "", "", "", "", "", "", "", "SW2", "", "", "ARD_A0", "",
+			  "ARD_A4", "ARD_A5", "ARD_D7", "ARD_D8";
+};
+
+gpio_arduino_c: &gpio2 {
+	status = "okay";
+	gpio-line-names = "", "", "", "ARD_A2", "ARD_A3", "ARD_A1", "", "", "", "",
+			  "ARD_D1", "ARD_D0", "ARD_D13", "", "", "", "ARD_D12";
+};
+
+sys_io: &gpio3 {
+	status = "okay";
+	gpio-line-names = "LED_BLUE", "ARD_D2", "", "", "", "", "", "", "", "", "", "",
+			  "LED_RED", "LED_GREEN", "ARD_D5", "ARD_D11", "ARD_D6", "ARD_D9",
+			  "", "", "", "", "", "", "", "", "", "", "", "", "",
+			  "ARD_D4";
+};

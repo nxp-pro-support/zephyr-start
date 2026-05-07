@@ -1,0 +1,1382 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FRDM Zephyr Shell Bench Tool</title>
+  <style>
+    :root {
+      --bg: #050806;
+      --panel: #0c120e;
+      --control: #111a13;
+      --control-hover: #18251b;
+      --text: #d7ffe0;
+      --muted: #7da887;
+      --terminal-bg: #020604;
+      --terminal-green: #00ff5c;
+      --bright-green: #00ff5c;
+      --bright-yellow: #ffee00;
+      --dim-cell: #536158;
+      --danger: #ff5151;
+      --control-h: 32px;
+      font-family: Consolas, "Cascadia Mono", "Courier New", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-width: 1280px;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Consolas, "Cascadia Mono", "Courier New", monospace;
+    }
+
+    .app {
+      width: 100vw;
+      height: 100vh;
+      padding: 12px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 10px;
+    }
+
+    .topbar,
+    .panel {
+      background: var(--panel);
+      border: 0;
+      border-radius: 0;
+      padding: 10px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .columns {
+      display: grid;
+      grid-template-columns: 800px minmax(520px, 1fr);
+      gap: 10px;
+      min-height: 0;
+    }
+
+    .left,
+    .right {
+      min-height: 0;
+    }
+
+    .left {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: auto;
+    }
+
+    .right {
+      display: grid;
+      grid-template-rows: minmax(320px, 50vh) auto minmax(0, 1fr);
+      gap: 8px;
+      min-height: 0;
+    }
+
+    .section {
+      background: var(--panel);
+      border: 0;
+      border-radius: 0;
+      padding: 10px;
+    }
+
+    .section h2,
+    .terminal-title {
+      margin: 0 0 8px;
+      font-size: 14px;
+      font-weight: 650;
+      color: var(--bright-green);
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tight {
+      gap: 6px;
+    }
+
+    label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    input,
+    select,
+    button {
+      height: var(--control-h);
+      border-radius: 0;
+      border: 0;
+      font: inherit;
+      color: var(--text);
+    }
+
+    input,
+    select {
+      padding: 4px 8px;
+      background: var(--control);
+    }
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--bright-green);
+    }
+
+    button {
+      padding: 4px 10px;
+      background: var(--control);
+      color: var(--bright-green);
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--control-hover);
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: default;
+    }
+
+    .w-port { width: 180px; }
+    .w-baud { width: 96px; }
+    .w-prompt { width: 132px; }
+    .w-target { width: 188px; }
+    .w-bus { width: 116px; }
+    .w-short { width: 58px; }
+    .w-gpio { width: 120px; }
+    .w-pin { width: 132px; }
+
+    .status {
+      min-height: 19px;
+      margin-bottom: 6px;
+      color: var(--bright-yellow);
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .status.green {
+      color: var(--bright-green);
+    }
+
+    .status.muted {
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .i2c-grid {
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: 42px repeat(16, 34px);
+      grid-auto-rows: 24px;
+      gap: 3px;
+      align-items: stretch;
+      width: max-content;
+      max-width: 100%;
+      background: #080d0a;
+    }
+
+    .grid-head,
+    .row-head {
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .addr-cell {
+      width: 34px;
+      height: 24px;
+      padding: 0;
+      border: 0;
+      background: #111711;
+      color: #75917b;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .addr-cell.reserved {
+      color: var(--dim-cell);
+      background: #080d0a;
+    }
+
+    .addr-cell.found {
+      color: #001b08;
+      background: var(--bright-green);
+      font-weight: 800;
+    }
+
+    .addr-cell.selected {
+      color: #161200;
+      background: var(--bright-yellow);
+      font-weight: 800;
+    }
+
+    .plot-wrap {
+      height: 150px;
+      border: 0;
+      border-radius: 0;
+      overflow: hidden;
+      background: #071008;
+    }
+
+    .temp-readout {
+      margin: 8px 0;
+      min-height: 78px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: end;
+      gap: 12px;
+      background: #020604;
+      color: var(--bright-green);
+      padding: 10px 12px;
+      font-family: Consolas, "Cascadia Mono", "Courier New", monospace;
+    }
+
+    .temp-value {
+      font-size: clamp(44px, 5.2vw, 86px);
+      line-height: 0.9;
+      font-weight: 800;
+      letter-spacing: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .temp-meta {
+      color: var(--bright-yellow);
+      font-size: 16px;
+      font-weight: 800;
+      align-self: center;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .temp-readout.idle {
+      color: var(--muted);
+    }
+
+    .temp-readout.idle .temp-meta {
+      color: var(--muted);
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .led-table {
+      display: grid;
+      grid-template-columns: 118px 70px 70px 82px;
+      gap: 5px 7px;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    .led-name {
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    .terminal-control {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .terminal-input,
+    .terminal {
+      background: var(--terminal-bg);
+      color: var(--terminal-green);
+      font-size: 13px;
+    }
+
+    .terminal {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      padding: 10px;
+      line-height: 1.35;
+      white-space: pre-wrap;
+      overflow: auto;
+      overflow-wrap: anywhere;
+    }
+
+    .terminal-input {
+      width: 100%;
+    }
+
+    .terminal:focus,
+    .terminal-input:focus {
+      outline: 2px solid rgba(0, 255, 92, 0.22);
+    }
+
+    .camera-card {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 8px;
+      min-height: 0;
+    }
+
+    .camera-frame {
+      background: #020604;
+      min-height: 0;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+      background: #020604;
+    }
+
+    video.mirrored {
+      transform: scaleX(-1);
+    }
+
+    .bad {
+      color: var(--danger);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <strong>FRDM Zephyr Shell Bench Tool</strong>
+      <label>Port <input id="portLabel" class="w-port" value="Web Serial" readonly></label>
+      <label>Target
+        <select id="portTarget" class="w-target">
+          <option value="auto">FRDM auto</option>
+          <option value="zephyr-cdc">Zephyr CDC ACM</option>
+          <option value="jlink-cdc">J-Link CDC UART</option>
+          <option value="any">Any serial port</option>
+        </select>
+      </label>
+      <label>Baud <input id="baud" class="w-baud" type="number" value="115200"></label>
+      <label>Prompt <input id="prompt" class="w-prompt" value="auto"></label>
+      <button id="connect">Connect</button>
+      <button id="connectRemembered">Remembered</button>
+      <button id="disconnect" disabled>Disconnect</button>
+      <span id="connectionStatus" class="status muted">Disconnected. Use Chrome or Edge on localhost.</span>
+    </div>
+
+    <div class="columns">
+      <div class="left">
+        <section class="section">
+          <h2>Discovery</h2>
+          <div class="row">
+            <button id="discover">Discover</button>
+            <button data-command="device list">Device List</button>
+            <button data-command="device list i2c">I2C Devices</button>
+            <label>I2C <input id="i2cBus" class="w-bus" value="sys_i2c"></label>
+            <label>GPIO <input id="gpioDev" class="w-gpio" value="sys_io"></label>
+            <button id="queryGpio">Query GPIO</button>
+          </div>
+          <div id="discoveryStatus" class="status green"></div>
+        </section>
+
+        <section class="section">
+          <h2>I2C Scanner</h2>
+          <div id="scanStatus" class="status">Press Scan I2C to query the bus</div>
+          <div class="row tight">
+            <button id="scanI2c">Scan I2C</button>
+            <label>Addr <input id="i2cAddr" class="w-short" value="48"></label>
+            <label>Reg <input id="i2cReg" class="w-short" value="00"></label>
+            <label>Len <input id="i2cLen" class="w-short" value="2"></label>
+          </div>
+          <div id="i2cGrid" class="i2c-grid" aria-label="I2C address grid"></div>
+          <div class="row tight" style="margin-top:8px">
+            <button id="readRaw">Read Raw</button>
+            <button id="readTemp">Read Temp</button>
+            <label>Value <input id="i2cValue" class="w-short" value="ff"></label>
+            <button id="writeByte">Write Byte</button>
+          </div>
+          <div id="rawStatus" class="status green"></div>
+          <div id="tempStatus" class="status"></div>
+        </section>
+
+        <section class="section">
+          <h2>Temperature Plot</h2>
+          <div class="row tight">
+            <button id="startPoll">Start 1s Temp Poll</button>
+            <button id="stopPoll" disabled>Stop Poll</button>
+            <button id="clearPlot">Clear Plot</button>
+            <span id="pollStatus" class="status green">Temperature polling stopped</span>
+          </div>
+          <div id="tempReadout" class="temp-readout idle">
+            <div id="tempValue" class="temp-value">--.- C</div>
+            <div id="tempMeta" class="temp-meta">IDLE</div>
+          </div>
+          <div class="plot-wrap"><canvas id="tempPlot"></canvas></div>
+        </section>
+
+        <section class="section">
+          <h2>GPIO / LEDs</h2>
+          <div class="row tight">
+            <label>Pin <select id="gpioPin" class="w-pin"></select></label>
+            <label><input id="activeLow" type="checkbox" checked> Active low</label>
+            <label><input id="initHigh" type="checkbox"> Init high</label>
+          </div>
+          <div class="row tight" style="margin-top:6px">
+            <button id="gpioConfigure">Configure</button>
+            <button id="gpioGet">Get</button>
+            <button id="gpioSet1">Set 1</button>
+            <button id="gpioSet0">Set 0</button>
+            <button id="gpioToggle">Toggle</button>
+            <span id="gpioStatus" class="status green">GPIO ready</span>
+          </div>
+          <div class="row tight" style="margin-top:6px">
+            <button id="configureLeds">Configure LEDs</button>
+          </div>
+          <div class="led-table" id="ledTable"></div>
+        </section>
+      </div>
+
+      <div class="right">
+        <section class="panel camera-card">
+          <div>
+            <div class="terminal-title">Board Camera</div>
+            <div class="row tight">
+              <button id="startCamera">Start Camera</button>
+              <button id="stopCamera" disabled>Stop Camera</button>
+              <select id="cameraSelect" style="min-width: 180px"></select>
+              <label><input id="mirrorCamera" type="checkbox"> Mirror</label>
+              <span id="cameraStatus" class="status muted">Camera stopped</span>
+            </div>
+          </div>
+          <div class="camera-frame">
+            <video id="boardCamera" autoplay muted playsinline></video>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="terminal-title">Zephyr Shell</div>
+          <div class="terminal-control">
+            <input id="manualCommand" class="terminal-input" value="help">
+            <button id="sendCommand">Send</button>
+            <button id="clearTerminal">Clear</button>
+          </div>
+        </section>
+        <div id="terminal" class="terminal" role="log" aria-live="polite"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DEFAULT_I2C_ADDR = "48";
+    const TEMP_REG = "00";
+    const TEMP_LEN = "2";
+    const LEDS = ["LED_RED", "LED_GREEN", "LED_BLUE"];
+    const I2C_SCAN_FIRST = 0x04;
+    const I2C_SCAN_LAST = 0x77;
+    const KNOWN_SERIAL_PORTS = {
+      "jlink-cdc": {
+        label: "J-Link CDC UART",
+        prompt: "frdm-tool:~$",
+        filter: { usbVendorId: 0x1366, usbProductId: 0x1024 },
+      },
+      "zephyr-cdc": {
+        label: "Zephyr CDC ACM",
+        prompt: "frdm-cdc:~$",
+        filter: { usbVendorId: 0x2fe3, usbProductId: 0x0004 },
+      },
+    };
+    const KNOWN_PROMPTS = ["frdm-tool:~$", "frdm-cdc:~$", "uart:~$"];
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+
+    let port = null;
+    let reader = null;
+    let writer = null;
+    let pending = null;
+    let commandTail = Promise.resolve();
+    let foundI2c = new Set();
+    let selectedI2c = null;
+    let tempSamples = [];
+    let pollTimer = null;
+    let pollStarted = 0;
+    let terminalChars = 0;
+    let ansiState = { fg: "var(--terminal-green)", bold: false };
+    let cameraStream = null;
+
+    const el = id => document.getElementById(id);
+
+    function setStatus(id, text, cls = "") {
+      const node = el(id);
+      node.textContent = text;
+      node.className = `status ${cls}`.trim();
+    }
+
+    function normalizeHex(value, width = 0) {
+      let cleaned = String(value || "").trim().toLowerCase();
+      if (cleaned.startsWith("0x")) cleaned = cleaned.slice(2);
+      cleaned = cleaned.replace(/[^0-9a-f]/g, "");
+      return width ? cleaned.padStart(width, "0").slice(-width) : cleaned;
+    }
+
+    function stripAnsi(text) {
+      return text.replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, "");
+    }
+
+    function selectedPortTarget() {
+      return el("portTarget").value || "auto";
+    }
+
+    function selectedPortFilters() {
+      const target = selectedPortTarget();
+      if (target === "any") return [];
+      if (target === "auto") {
+        return Object.values(KNOWN_SERIAL_PORTS).map(portInfo => portInfo.filter);
+      }
+      return KNOWN_SERIAL_PORTS[target] ? [KNOWN_SERIAL_PORTS[target].filter] : [];
+    }
+
+    function getPortInfo(selectedPort) {
+      return selectedPort?.getInfo ? selectedPort.getInfo() : {};
+    }
+
+    function matchesUsbId(info, filter) {
+      return info.usbVendorId === filter.usbVendorId && info.usbProductId === filter.usbProductId;
+    }
+
+    function knownPortKey(selectedPort) {
+      const info = getPortInfo(selectedPort);
+      for (const [key, portInfo] of Object.entries(KNOWN_SERIAL_PORTS)) {
+        if (matchesUsbId(info, portInfo.filter)) return key;
+      }
+      return "";
+    }
+
+    function portMatchesTarget(selectedPort) {
+      const target = selectedPortTarget();
+      if (target === "any") return true;
+      const key = knownPortKey(selectedPort);
+      if (target === "auto") return Boolean(key);
+      return key === target;
+    }
+
+    function describePort(selectedPort) {
+      const info = getPortInfo(selectedPort);
+      const key = knownPortKey(selectedPort);
+      const label = key ? KNOWN_SERIAL_PORTS[key].label : "Serial port";
+      const vid = info.usbVendorId === undefined ? "----" : info.usbVendorId.toString(16).padStart(4, "0");
+      const pid = info.usbProductId === undefined ? "----" : info.usbProductId.toString(16).padStart(4, "0");
+      return `${label} ${vid}:${pid}`;
+    }
+
+    function maybeSetPromptForPort(selectedPort) {
+      const key = knownPortKey(selectedPort);
+      if (!key) return;
+      const prompt = el("prompt");
+      const current = prompt.value.trim();
+      const currentIsKnown = current.toLowerCase() === "auto" || KNOWN_PROMPTS.includes(current);
+      if (currentIsKnown) prompt.value = KNOWN_SERIAL_PORTS[key].prompt;
+    }
+
+    function configuredPrompts() {
+      const prompts = new Set(KNOWN_PROMPTS);
+      const raw = el("prompt").value.trim();
+      if (raw && raw.toLowerCase() !== "auto") {
+        raw.split(/[|,;]/).map(item => item.trim()).filter(Boolean).forEach(item => prompts.add(item));
+      }
+      return [...prompts];
+    }
+
+    function responseHasPrompt(response) {
+      const clean = stripAnsi(response);
+      return configuredPrompts().some(prompt => clean.includes(prompt));
+    }
+
+    function resetAnsi() {
+      ansiState = { fg: "var(--terminal-green)", bold: false };
+    }
+
+    function ansiColor(code) {
+      const colors = {
+        30: "#101418",
+        31: "#ff4a4a",
+        32: "var(--terminal-green)",
+        33: "var(--bright-yellow)",
+        34: "#64a8ff",
+        35: "#ff66ff",
+        36: "#2de2e6",
+        37: "#e6edf3",
+        90: "#7f8a96",
+        91: "#ff7777",
+        92: "#58ff8a",
+        93: "#fff46a",
+        94: "#8fc1ff",
+        95: "#ff94ff",
+        96: "#68f4f7",
+        97: "#ffffff",
+      };
+      return colors[code] || null;
+    }
+
+    function applySgr(params) {
+      const codes = params.length
+        ? params.split(";").map(part => Number(part || "0"))
+        : [0];
+
+      for (const code of codes) {
+        if (code === 0) resetAnsi();
+        else if (code === 1) ansiState.bold = true;
+        else if (code === 22) ansiState.bold = false;
+        else if (code === 39) ansiState.fg = "var(--terminal-green)";
+        else if ((code >= 30 && code <= 37) || (code >= 90 && code <= 97)) {
+          ansiState.fg = ansiColor(code) || ansiState.fg;
+        }
+      }
+    }
+
+    function appendTerminalText(text) {
+      if (!text) return;
+      const span = document.createElement("span");
+      span.textContent = text;
+      span.style.color = ansiState.fg;
+      span.style.fontWeight = ansiState.bold ? "700" : "400";
+      span.dataset.len = String(text.length);
+      el("terminal").appendChild(span);
+      terminalChars += text.length;
+    }
+
+    function pruneTerminal() {
+      const terminal = el("terminal");
+      while (terminalChars > 90000 && terminal.firstChild) {
+        terminalChars -= Number(terminal.firstChild.dataset?.len || terminal.firstChild.textContent.length);
+        terminal.firstChild.remove();
+      }
+    }
+
+    function appendTerminal(text) {
+      const terminal = el("terminal");
+      text = text.replace(/\r/g, "");
+
+      let index = 0;
+      while (index < text.length) {
+        const esc = text.indexOf("\x1b[", index);
+        if (esc === -1) {
+          appendTerminalText(text.slice(index));
+          break;
+        }
+
+        appendTerminalText(text.slice(index, esc));
+        const match = text.slice(esc).match(/^\x1b\[([0-?]*)([ -/]*)([@-~])/);
+        if (!match) {
+          appendTerminalText(text[esc]);
+          index = esc + 1;
+          continue;
+        }
+
+        const params = match[1];
+        const final = match[3];
+        if (final === "m") {
+          applySgr(params);
+        } else if (final === "C") {
+          appendTerminalText(" ".repeat(Number(params || "1")));
+        }
+        index = esc + match[0].length;
+      }
+
+      if (terminalChars > 120000) pruneTerminal();
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function setConnected(connected) {
+      el("connect").disabled = connected;
+      el("connectRemembered").disabled = connected;
+      el("disconnect").disabled = !connected;
+      setStatus(
+        "connectionStatus",
+        connected ? "Connected. Scan is manual." : "Disconnected. Choose target, then Connect.",
+        connected ? "green" : "muted",
+      );
+    }
+
+    async function openSelectedPort(selectedPort) {
+      if (!("serial" in navigator)) {
+        setStatus("connectionStatus", "Web Serial is not available in this browser.", "bad");
+        return;
+      }
+
+      port = selectedPort;
+      await port.open({ baudRate: Number(el("baud").value || 115200) });
+      if (port.setSignals) {
+        await port.setSignals({ dataTerminalReady: true, requestToSend: true });
+      }
+      writer = port.writable.getWriter();
+      el("portLabel").value = describePort(selectedPort);
+      maybeSetPromptForPort(selectedPort);
+      setConnected(true);
+      appendTerminal("[connected]\n");
+      readLoop();
+      await writer.write(encoder.encode("\r\n"));
+      setStatus("scanStatus", "Press Scan I2C to query the bus");
+    }
+
+    async function connectPrompt() {
+      try {
+        const filters = selectedPortFilters();
+        const options = filters.length ? { filters } : {};
+        const selectedPort = await navigator.serial.requestPort(options);
+        await openSelectedPort(selectedPort);
+      } catch (err) {
+        setStatus("connectionStatus", `Connect failed: ${err.message}`, "bad");
+      }
+    }
+
+    async function connectRemembered() {
+      try {
+        const ports = await navigator.serial.getPorts();
+        if (!ports.length) {
+          setStatus("connectionStatus", "No remembered Web Serial ports. Use Connect first.", "bad");
+          return;
+        }
+        const selectedPort = ports.find(portMatchesTarget);
+        if (!selectedPort) {
+          setStatus("connectionStatus", "No remembered port matches the selected target.", "bad");
+          return;
+        }
+        await openSelectedPort(selectedPort);
+      } catch (err) {
+        setStatus("connectionStatus", `Connect failed: ${err.message}`, "bad");
+      }
+    }
+
+    async function disconnect() {
+      stopPolling();
+      try {
+        if (reader) {
+          await reader.cancel();
+          reader = null;
+        }
+      } catch (_) {}
+      try {
+        if (writer) {
+          writer.releaseLock();
+          writer = null;
+        }
+      } catch (_) {}
+      try {
+        if (port) {
+          if (port.setSignals) {
+            await port.setSignals({ dataTerminalReady: false, requestToSend: false });
+          }
+          await port.close();
+        }
+      } catch (_) {}
+      port = null;
+      pending = null;
+      el("portLabel").value = "Web Serial";
+      setConnected(false);
+      appendTerminal("\n[disconnected]\n");
+    }
+
+    async function readLoop() {
+      while (port && port.readable) {
+        reader = port.readable.getReader();
+        try {
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            const text = decoder.decode(value);
+            appendTerminal(text);
+            if (pending) {
+              pending.response += text;
+              if (responseHasPrompt(pending.response)) {
+                pending.finish();
+              }
+            }
+          }
+        } catch (err) {
+          appendTerminal(`\n[serial read error] ${err.message}\n`);
+        } finally {
+          try { reader.releaseLock(); } catch (_) {}
+        }
+      }
+    }
+
+    function runCommand(command, timeoutMs = 2500) {
+      const task = () => runCommandUnlocked(command, timeoutMs);
+      const result = commandTail.then(task, task);
+      commandTail = result.catch(() => {});
+      return result;
+    }
+
+    function runCommandUnlocked(command, timeoutMs) {
+      command = command.trim();
+      if (!command) return Promise.resolve("");
+      if (!writer) return Promise.reject(new Error("serial port is not connected"));
+
+      appendTerminal(`\n> ${command}\n`);
+      return new Promise(async (resolve, reject) => {
+        let timer = null;
+        pending = {
+          response: "",
+          finish() {
+            if (timer) clearTimeout(timer);
+            const response = pending.response;
+            pending = null;
+            resolve(response);
+          },
+        };
+
+        timer = setTimeout(() => {
+          if (!pending) return;
+          const response = pending.response;
+          pending = null;
+          resolve(response);
+        }, timeoutMs);
+
+        try {
+          await writer.write(encoder.encode(command + "\r\n"));
+        } catch (err) {
+          if (timer) clearTimeout(timer);
+          pending = null;
+          reject(err);
+        }
+      });
+    }
+
+    function parseI2cScan(response) {
+      const found = new Set();
+      for (const line of stripAnsi(response).split(/\r?\n/)) {
+        const match = line.match(/^\s*[0-7][0-9a-fA-F]:\s+(.*)$/);
+        if (!match) continue;
+        for (const token of match[1].trim().split(/\s+/)) {
+          if (/^[0-7][0-9a-fA-F]$/.test(token)) found.add(token.toLowerCase());
+        }
+      }
+      return [...found].sort((a, b) => parseInt(a, 16) - parseInt(b, 16));
+    }
+
+    function parseHexdumpBytes(response) {
+      const values = [];
+      for (const line of stripAnsi(response).split(/\r?\n/)) {
+        const match = line.match(/^\s*[0-9a-fA-F]{8}:\s+(.*?)\s+\|/);
+        if (!match) continue;
+        for (const token of match[1].matchAll(/\b[0-9a-fA-F]{2}\b/g)) {
+          values.push(parseInt(token[0], 16));
+        }
+      }
+      return values;
+    }
+
+    function decodeP3t1755(bytes) {
+      if (bytes.length < 2) throw new Error("temperature read did not return two bytes");
+      const raw = (bytes[0] << 8) | bytes[1];
+      let counts = raw >> 4;
+      if (counts & 0x800) counts -= 0x1000;
+      return counts * 0.0625;
+    }
+
+    function parseGpioInfo(response) {
+      const pins = [];
+      for (const line of stripAnsi(response).split(/\r?\n/)) {
+        const match = line.match(/^\s+(\*| )\s+(\d+)\s*(.*)$/);
+        if (!match) continue;
+        const name = match[3].trim();
+        if (name) pins.push({ pin: Number(match[2]), name, reserved: match[1] === "*" });
+      }
+      return pins.filter(pin => !pin.reserved);
+    }
+
+    function buildI2cGrid() {
+      const grid = el("i2cGrid");
+      grid.innerHTML = "";
+      grid.appendChild(cellHeader(""));
+      for (let col = 0; col < 16; col++) grid.appendChild(cellHeader(col.toString(16)));
+
+      for (let base = 0; base <= 0x7f; base += 16) {
+        grid.appendChild(rowHeader(`0x${base.toString(16).padStart(2, "0")}`));
+        for (let offset = 0; offset < 16; offset++) {
+          const addr = base + offset;
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "addr-cell";
+          button.textContent = addr.toString(16).padStart(2, "0");
+          button.dataset.addr = button.textContent;
+          button.addEventListener("click", () => selectI2cAddress(button.dataset.addr));
+          grid.appendChild(button);
+        }
+      }
+      updateI2cGrid([], { highlightSelected: false });
+    }
+
+    function cellHeader(text) {
+      const div = document.createElement("div");
+      div.className = "grid-head";
+      div.textContent = text;
+      return div;
+    }
+
+    function rowHeader(text) {
+      const div = document.createElement("div");
+      div.className = "row-head";
+      div.textContent = text;
+      return div;
+    }
+
+    function isScanAddress(addr) {
+      return addr >= I2C_SCAN_FIRST && addr <= I2C_SCAN_LAST;
+    }
+
+    function updateI2cGrid(addresses = foundI2c, options = {}) {
+      const highlightSelected = options.highlightSelected ?? true;
+      foundI2c = new Set([...addresses].map(addr => normalizeHex(addr, 2)));
+      document.querySelectorAll(".addr-cell").forEach(cell => {
+        const addr = parseInt(cell.dataset.addr, 16);
+        const hex = cell.dataset.addr;
+        cell.className = "addr-cell";
+        if (!isScanAddress(addr)) cell.classList.add("reserved");
+        if (foundI2c.has(hex)) cell.classList.add("found");
+        if (highlightSelected && selectedI2c === hex) cell.classList.add("selected");
+      });
+    }
+
+    function selectI2cAddress(addr) {
+      const hex = normalizeHex(addr, 2);
+      const value = parseInt(hex, 16);
+      if (!isScanAddress(value)) {
+        setStatus("scanStatus", `0x${hex} is outside the normal 7-bit scan range`);
+        return;
+      }
+      selectedI2c = hex;
+      el("i2cAddr").value = hex;
+      updateI2cGrid(foundI2c);
+      const prefix = foundI2c.has(hex) ? "Selected detected" : "Selected";
+      setStatus("scanStatus", `${prefix} I2C address 0x${hex}`);
+    }
+
+    async function scanI2c() {
+      const bus = el("i2cBus").value || "sys_i2c";
+      setStatus("scanStatus", `Scanning ${bus}...`);
+      try {
+        const response = await runCommand(`i2c scan ${bus}`, 4000);
+        const addresses = parseI2cScan(response);
+        if (addresses.length) {
+          if (addresses.includes(DEFAULT_I2C_ADDR)) {
+            selectedI2c = DEFAULT_I2C_ADDR;
+            el("i2cAddr").value = DEFAULT_I2C_ADDR;
+          } else {
+            selectedI2c = addresses[0];
+            el("i2cAddr").value = addresses[0];
+          }
+          updateI2cGrid(addresses);
+          setStatus("scanStatus", `Found ${addresses.length} device(s): ${addresses.map(a => "0x" + a).join(", ")}`);
+        } else {
+          selectedI2c = null;
+          updateI2cGrid([]);
+          setStatus("scanStatus", "No I2C devices found");
+        }
+      } catch (err) {
+        setStatus("scanStatus", `Scan failed: ${err.message}`, "bad");
+      }
+    }
+
+    function i2cReadCommand(lenOverride = null) {
+      return `i2c read ${el("i2cBus").value || "sys_i2c"} ${normalizeHex(el("i2cAddr").value)} ${normalizeHex(el("i2cReg").value)} ${normalizeHex(lenOverride || el("i2cLen").value)}`;
+    }
+
+    async function readRaw() {
+      try {
+        const response = await runCommand(i2cReadCommand());
+        const bytes = parseHexdumpBytes(response);
+        setStatus("rawStatus", bytes.length ? `Raw: ${bytes.map(b => b.toString(16).padStart(2, "0")).join(" ")}` : "No hexdump bytes parsed", "green");
+      } catch (err) {
+        setStatus("rawStatus", `Read failed: ${err.message}`, "bad");
+      }
+    }
+
+    async function readTemp() {
+      el("i2cReg").value = TEMP_REG;
+      el("i2cLen").value = TEMP_LEN;
+      try {
+        const response = await runCommand(i2cReadCommand(TEMP_LEN));
+        const bytes = parseHexdumpBytes(response);
+        const temp = decodeP3t1755(bytes);
+        addTempSample(temp, bytes);
+      } catch (err) {
+        setStatus("tempStatus", `Temperature read failed: ${err.message}`, "bad");
+        el("tempMeta").textContent = "READ ERROR";
+      }
+    }
+
+    async function writeByte() {
+      const command = `i2c write_byte ${el("i2cBus").value || "sys_i2c"} ${normalizeHex(el("i2cAddr").value)} ${normalizeHex(el("i2cReg").value)} ${normalizeHex(el("i2cValue").value)}`;
+      try {
+        await runCommand(command);
+      } catch (err) {
+        setStatus("rawStatus", `Write failed: ${err.message}`, "bad");
+      }
+    }
+
+    function addTempSample(temp, bytes) {
+      const now = performance.now() / 1000;
+      if (!pollStarted) pollStarted = now;
+      tempSamples.push({ t: now - pollStarted, y: temp });
+      if (tempSamples.length > 240) tempSamples = tempSamples.slice(-240);
+      const raw = bytes.slice(0, 2).map(b => b.toString(16).padStart(2, "0")).join(" ");
+      setStatus("tempStatus", `P3T1755: ${temp.toFixed(2)} C from bytes ${raw}`);
+      el("tempValue").textContent = `${temp.toFixed(2)} C`;
+      el("tempMeta").textContent = pollTimer ? "STREAMING" : "SINGLE READ";
+      el("tempReadout").classList.toggle("idle", !pollTimer);
+      drawPlot();
+    }
+
+    function drawPlot() {
+      const canvas = el("tempPlot");
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+      canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, rect.width, rect.height);
+
+      const padL = 42, padR = 12, padT = 12, padB = 28;
+      const w = rect.width - padL - padR;
+      const h = rect.height - padT - padB;
+      ctx.strokeStyle = "#c9d0d8";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(padL, padT, w, h);
+
+      ctx.fillStyle = "#5f6b7a";
+      ctx.font = '12px Consolas, "Cascadia Mono", "Courier New", monospace';
+      ctx.fillText("30 C", 4, padT + 4);
+      ctx.fillText("0 C", 12, padT + h);
+      ctx.fillText("seconds", padL + w - 52, rect.height - 7);
+
+      if (tempSamples.length < 2) return;
+      const maxT = Math.max(10, tempSamples[tempSamples.length - 1].t);
+      ctx.beginPath();
+      ctx.strokeStyle = "#00ff5c";
+      ctx.lineWidth = 2;
+      tempSamples.forEach((sample, index) => {
+        const x = padL + (sample.t / maxT) * w;
+        const clamped = Math.max(0, Math.min(30, sample.y));
+        const y = padT + h - (clamped / 30) * h;
+        if (index === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    }
+
+    function startPolling() {
+      if (pollTimer) return;
+      if (!writer) {
+        setStatus("pollStatus", "Connect before starting temperature polling", "bad");
+        return;
+      }
+      pollStarted = performance.now() / 1000;
+      tempSamples = [];
+      drawPlot();
+      setStatus("pollStatus", "Polling once per second", "green");
+      el("tempMeta").textContent = "STREAMING";
+      el("tempReadout").classList.remove("idle");
+      el("startPoll").disabled = true;
+      el("stopPoll").disabled = false;
+      pollTimer = setInterval(readTemp, 1000);
+      readTemp();
+    }
+
+    function stopPolling() {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = null;
+      el("startPoll").disabled = false;
+      el("stopPoll").disabled = true;
+      setStatus("pollStatus", "Temperature polling stopped", "green");
+      el("tempMeta").textContent = tempSamples.length ? "HELD" : "IDLE";
+      el("tempReadout").classList.add("idle");
+    }
+
+    function clearPlot() {
+      tempSamples = [];
+      pollStarted = 0;
+      drawPlot();
+      setStatus("tempStatus", "");
+      el("tempValue").textContent = "--.- C";
+      el("tempMeta").textContent = pollTimer ? "STREAMING" : "IDLE";
+      el("tempReadout").classList.toggle("idle", !pollTimer);
+    }
+
+    async function discover() {
+      try {
+        setStatus("discoveryStatus", "Running discovery commands...", "green");
+        await runCommand("device list", 2500);
+        await runCommand("device list i2c", 2500);
+        await runCommand("gpio devices", 2500);
+        const gpioInfo = await runCommand(`gpio info ${el("gpioDev").value || "sys_io"}`, 2500);
+        const pins = parseGpioInfo(gpioInfo);
+        if (pins.length) populateGpioPins(pins.map(pin => pin.name));
+        setStatus("discoveryStatus", `Discovery complete. ${pins.length} named GPIO lines parsed.`, "green");
+      } catch (err) {
+        setStatus("discoveryStatus", `Discovery failed: ${err.message}`, "bad");
+      }
+    }
+
+    function populateGpioPins(pins) {
+      const select = el("gpioPin");
+      const previous = select.value || "LED_RED";
+      const values = [...new Set([...pins, ...LEDS])];
+      select.innerHTML = "";
+      for (const value of values) {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+      }
+      select.value = values.includes(previous) ? previous : "LED_RED";
+      el("activeLow").checked = select.value.startsWith("LED_");
+    }
+
+    function gpioConfigString() {
+      return `o${el("activeLow").checked ? "l" : "h"}${el("initHigh").checked ? "1" : "0"}`;
+    }
+
+    function selectedGpioPin() {
+      return el("gpioPin").value || "LED_RED";
+    }
+
+    async function queryGpio() {
+      try {
+        const response = await runCommand(`gpio info ${el("gpioDev").value || "sys_io"}`);
+        const pins = parseGpioInfo(response);
+        if (pins.length) populateGpioPins(pins.map(pin => pin.name));
+        setStatus("gpioStatus", pins.length ? `GPIO lines: ${pins.slice(0, 8).map(p => p.name).join(", ")}` : "No GPIO lines parsed", "green");
+      } catch (err) {
+        setStatus("gpioStatus", `GPIO query failed: ${err.message}`, "bad");
+      }
+    }
+
+    async function gpioCommand(command) {
+      try {
+        return await runCommand(command);
+      } catch (err) {
+        setStatus("gpioStatus", `GPIO command failed: ${err.message}`, "bad");
+        return "";
+      }
+    }
+
+    async function gpioGet() {
+      const response = await gpioCommand(`gpio get ${el("gpioDev").value || "sys_io"} ${selectedGpioPin()}`);
+      const match = stripAnsi(response).match(/^\s*([01])\s*$/m);
+      setStatus("gpioStatus", match ? `${selectedGpioPin()} = ${match[1]}` : "GPIO value not parsed", "green");
+    }
+
+    function configureSelectedGpio() {
+      gpioCommand(`gpio conf ${el("gpioDev").value || "sys_io"} ${selectedGpioPin()} ${gpioConfigString()}`);
+    }
+
+    function setSelectedGpio(value) {
+      gpioCommand(`gpio set ${el("gpioDev").value || "sys_io"} ${selectedGpioPin()} ${value}`);
+    }
+
+    function toggleSelectedGpio() {
+      gpioCommand(`gpio toggle ${el("gpioDev").value || "sys_io"} ${selectedGpioPin()}`);
+    }
+
+    function configureLeds() {
+      for (const led of LEDS) {
+        gpioCommand(`gpio conf ${el("gpioDev").value || "sys_io"} ${led} ol0`);
+      }
+    }
+
+    function ledAction(led, action) {
+      if (action === "toggle") {
+        gpioCommand(`gpio toggle ${el("gpioDev").value || "sys_io"} ${led}`);
+      } else {
+        gpioCommand(`gpio set ${el("gpioDev").value || "sys_io"} ${led} ${action}`);
+      }
+    }
+
+    function buildLedTable() {
+      const table = el("ledTable");
+      table.innerHTML = "";
+      for (const led of LEDS) {
+        const name = document.createElement("div");
+        name.className = "led-name";
+        name.textContent = led;
+        table.appendChild(name);
+        for (const [label, action] of [["On", 1], ["Off", 0], ["Toggle", "toggle"]]) {
+          const button = document.createElement("button");
+          button.textContent = label;
+          button.addEventListener("click", () => ledAction(led, action));
+          table.appendChild(button);
+        }
+      }
+    }
+
+    async function refreshCameraList() {
+      if (!navigator.mediaDevices?.enumerateDevices) {
+        setStatus("cameraStatus", "Camera API is not available in this browser.", "bad");
+        return;
+      }
+
+      const select = el("cameraSelect");
+      const previous = select.value;
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const cameras = devices.filter(device => device.kind === "videoinput");
+
+      select.innerHTML = "";
+      cameras.forEach((camera, index) => {
+        const option = document.createElement("option");
+        option.value = camera.deviceId;
+        option.textContent = camera.label || `Camera ${index + 1}`;
+        select.appendChild(option);
+      });
+
+      if (previous && [...select.options].some(option => option.value === previous)) {
+        select.value = previous;
+      }
+
+      if (!cameras.length) {
+        const option = document.createElement("option");
+        option.textContent = "No cameras found";
+        option.value = "";
+        select.appendChild(option);
+      }
+    }
+
+    async function startCamera() {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setStatus("cameraStatus", "Camera API is not available in this browser.", "bad");
+        return;
+      }
+
+      stopCamera();
+
+      const deviceId = el("cameraSelect").value;
+      const constraints = {
+        video: deviceId
+          ? { deviceId: { exact: deviceId }, width: { ideal: 1280 }, height: { ideal: 720 } }
+          : { width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false,
+      };
+
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+        el("boardCamera").srcObject = cameraStream;
+        el("startCamera").disabled = true;
+        el("stopCamera").disabled = false;
+        setStatus("cameraStatus", "Camera running", "green");
+        await refreshCameraList();
+      } catch (err) {
+        cameraStream = null;
+        el("boardCamera").srcObject = null;
+        setStatus("cameraStatus", `Camera failed: ${err.message}`, "bad");
+      }
+    }
+
+    function stopCamera() {
+      if (cameraStream) {
+        for (const track of cameraStream.getTracks()) {
+          track.stop();
+        }
+      }
+      cameraStream = null;
+      el("boardCamera").srcObject = null;
+      el("startCamera").disabled = false;
+      el("stopCamera").disabled = true;
+      setStatus("cameraStatus", "Camera stopped", "muted");
+    }
+
+    function updateCameraMirror() {
+      el("boardCamera").classList.toggle("mirrored", el("mirrorCamera").checked);
+    }
+
+    function wireEvents() {
+      el("connect").addEventListener("click", connectPrompt);
+      el("connectRemembered").addEventListener("click", connectRemembered);
+      el("disconnect").addEventListener("click", disconnect);
+      el("startCamera").addEventListener("click", startCamera);
+      el("stopCamera").addEventListener("click", stopCamera);
+      el("cameraSelect").addEventListener("change", () => {
+        if (cameraStream) startCamera();
+      });
+      el("mirrorCamera").addEventListener("change", updateCameraMirror);
+      el("discover").addEventListener("click", discover);
+      el("queryGpio").addEventListener("click", queryGpio);
+      el("scanI2c").addEventListener("click", scanI2c);
+      el("readRaw").addEventListener("click", readRaw);
+      el("readTemp").addEventListener("click", readTemp);
+      el("writeByte").addEventListener("click", writeByte);
+      el("startPoll").addEventListener("click", startPolling);
+      el("stopPoll").addEventListener("click", stopPolling);
+      el("clearPlot").addEventListener("click", clearPlot);
+      el("gpioConfigure").addEventListener("click", configureSelectedGpio);
+      el("gpioGet").addEventListener("click", gpioGet);
+      el("gpioSet1").addEventListener("click", () => setSelectedGpio(1));
+      el("gpioSet0").addEventListener("click", () => setSelectedGpio(0));
+      el("gpioToggle").addEventListener("click", toggleSelectedGpio);
+      el("configureLeds").addEventListener("click", configureLeds);
+      el("gpioPin").addEventListener("change", () => {
+        el("activeLow").checked = selectedGpioPin().startsWith("LED_");
+      });
+      el("i2cAddr").addEventListener("change", () => {
+        selectedI2c = normalizeHex(el("i2cAddr").value, 2);
+        updateI2cGrid(foundI2c);
+      });
+      el("sendCommand").addEventListener("click", () => runCommand(el("manualCommand").value));
+      el("manualCommand").addEventListener("keydown", event => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          runCommand(el("manualCommand").value);
+        }
+      });
+      el("clearTerminal").addEventListener("click", () => {
+        el("terminal").replaceChildren();
+        terminalChars = 0;
+        resetAnsi();
+      });
+      document.querySelectorAll("[data-command]").forEach(button => {
+        button.addEventListener("click", () => runCommand(button.dataset.command));
+      });
+      window.addEventListener("resize", drawPlot);
+    }
+
+    function init() {
+      buildI2cGrid();
+      buildLedTable();
+      populateGpioPins(LEDS);
+      wireEvents();
+      drawPlot();
+      setConnected(false);
+      if (!("serial" in navigator)) {
+        setStatus("connectionStatus", "Web Serial is not available. Use Chrome or Edge.", "bad");
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
