@@ -6,11 +6,12 @@ Zephyr's shell over USB CDC ACM and enables `CONFIG_CAN_SHELL`.
 
 ## Zephyr Version Note
 
-This workspace is Zephyr 4.3.x. The latest Zephyr CAN shell documentation shows
-a newer `can dump` command, but this local tree does not include that command in
-`drivers/can/can_shell.c`. This demo uses the current 4.3-compatible path:
-catch-all `can filter add` commands, then parsing the frame lines printed by the
-CAN shell.
+This workspace is Zephyr `v4.4.0`. The CAN shell in 4.4 includes the
+`can dump <device>` command, which is a simpler way to stream raw frames than
+the filter/parse approach used here. This demo intentionally keeps the
+catch-all `can filter add` + frame-line parsing flow because the Web Serial UI
+in `scripts/` consumes that printed format. If you only need a console dump,
+`can dump can0` is available.
 
 ## Build And Flash
 

@@ -12,7 +12,7 @@ What it does:
 
 ## Measured footprint
 
-Built in this workspace with Zephyr `4.4.0-rc2`:
+Built in this workspace with Zephyr `v4.4.0`:
 
 | Build | Flash | RAM |
 | --- | ---: | ---: |
