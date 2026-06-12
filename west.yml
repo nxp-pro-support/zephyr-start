@@ -24,10 +24,13 @@ manifest:
           - cmsis
           - cmsis_6
           - hal_nxp
+          - mcuboot
           - liblc3
           - libmetal
           - littlefs
           - mbedtls
+          - tf-psa-crypto
+          - zcbor
           - lvgl
           - open-amp
           - segger
