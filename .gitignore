@@ -49,3 +49,9 @@ Thumbs.db
 *.mov
 *.wmv
 
+
+# Ozone per-user window state
+*.jdebug.user
+
+# MCUXpresso Config Tools device-data cache (300+ MB)
+app/demos/ethernet_bridge/lan8651_t1s_demo/RW612/
