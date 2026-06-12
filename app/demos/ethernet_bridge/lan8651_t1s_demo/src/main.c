@@ -270,9 +270,13 @@ static void http_server(void *a, void *b, void *c)
 }
 #endif
 
+
+#define CONFIG__DEST_IP_ADDRESS	"2.2.2.2"
+
 int main(void)
 {
-	struct net_if *iface = net_if_get_default();
+	//struct net_if *iface = net_if_get_default();
+	struct net_if *iface = net_if_lookup_by_dev(DEVICE_DT_GET(DT_ALIAS(ethernet0)));
 
 	if (iface == NULL) {
 		LOG_ERR("No default network interface found");
@@ -296,9 +300,47 @@ int main(void)
 
 	LOG_INF("LAN8651 T1S demo ready");
 
+	/* Periodic UDP transmitter: send one packet every
+	 * CONFIG_APP_UDP_TX_INTERVAL_MS to CONFIG__DEST_IP_ADDRESS.
+	 */
+	int tx_sock = zsock_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+	if (tx_sock < 0) {
+		LOG_ERR("UDP tx socket create failed: %d", errno);
+		return -errno;
+	}
+
+	struct sockaddr_in peer = {
+		.sin_family = AF_INET,
+		.sin_port = htons(CONFIG_APP_UDP_TX_PORT),
+	};
+
+	if (zsock_inet_pton(AF_INET, CONFIG__DEST_IP_ADDRESS, &peer.sin_addr) != 1) {
+		LOG_ERR("Invalid UDP peer address '%s'", CONFIG__DEST_IP_ADDRESS);
+		zsock_close(tx_sock);
+		return -EINVAL;
+	}
+
+	uint32_t seq = 0U;
+
 	while (true) {
-		k_sleep(K_SECONDS(30));
-		log_iface_state(iface);
+		char msg[64];
+		int len = snprintk(msg, sizeof(msg),
+				   "lan8651_t1s seq=%u uptime_ms=%" PRId64,
+				   seq, k_uptime_get());
+		int ret = zsock_sendto(tx_sock, msg, len, 0,
+				       (struct sockaddr *)&peer, sizeof(peer));
+
+		if (ret < 0) {
+			LOG_ERR("UDP tx to %s:%d failed: %d",
+				CONFIG__DEST_IP_ADDRESS, CONFIG_APP_UDP_TX_PORT, errno);
+		} else {
+			LOG_INF("UDP tx %d bytes to %s:%d (seq=%u)",
+				ret, CONFIG__DEST_IP_ADDRESS, CONFIG_APP_UDP_TX_PORT, seq);
+		}
+
+		seq++;
+		k_sleep(K_MSEC(CONFIG_APP_UDP_TX_INTERVAL_MS));
 	}
 
 	return 0;

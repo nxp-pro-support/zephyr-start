@@ -12,6 +12,23 @@ config APP_SERVER_STACK_SIZE
 	default 2048
 	range 1024 8192
 
+config APP_UDP_TX_PEER_ADDR
+	string "Destination IPv4 address for the periodic UDP transmitter"
+	default "192.0.2.1"
+	help
+	  Unicast (or broadcast) IPv4 address the main loop sends a UDP packet to
+	  every APP_UDP_TX_INTERVAL_MS milliseconds.
+
+config APP_UDP_TX_PORT
+	int "Destination UDP port for the periodic UDP transmitter"
+	default 4242
+	range 1 65535
+
+config APP_UDP_TX_INTERVAL_MS
+	int "Interval between periodic UDP transmissions (ms)"
+	default 2000
+	range 100 600000
+
 config APP_HTTP_SERVER
 	bool "Enable simple HTTP status server"
 	help
