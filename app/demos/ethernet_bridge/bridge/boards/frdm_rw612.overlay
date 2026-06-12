@@ -1,0 +1,82 @@
+#include <nxp/rw/RW612-pinctrl.h>
+
+/*
+ * LAN8651 (10BASE-T1S) on the FRDM-RW612 mikroBUS socket.
+ *
+ * Unlike the MCXA boards, RW612 has no LPSPI. The mikroBUS SPI is wired to
+ * Flexcomm 1 (nxp,lpc-spi), which the board already aliases as mikrobus_spi:
+ *
+ *   mikroBUS SCK  -> GPIO_7  (hsgpio0 7,  FC1 SPI clock, IO7)
+ *   mikroBUS MISO -> GPIO_8  (hsgpio0 8,  FC1 SPI MISO,  IO8)
+ *   mikroBUS MOSI -> GPIO_9  (hsgpio0 9,  FC1 SPI MOSI,  IO9)
+ *   mikroBUS CS   -> GPIO_10 (hsgpio0 10, FC1 SPI SSEL1) -> used as GPIO CS
+ *   mikroBUS RST  -> GPIO_19 (hsgpio0 19)
+ *   mikroBUS INT  -> GPIO_54 (hsgpio1 22)
+ *
+ * We mux only the FC1 SPI clock/data lines (the SS0 group also pulls in
+ * SCK/MISO/MOSI on IO7/8/9) and leave IO10 as a GPIO so it can act as the
+ * driver-managed chip select via cs-gpios.
+ */
+
+//&enet_mac  { status = "disabled"; };
+//&enet_mdio { status = "disabled"; };
+//&phy       { status = "disabled"; };
+//&enet      { status = "disabled"; };
+
+/ {
+	aliases {
+		ethernet0 = &lan8651;
+	};
+};
+
+&pinctrl {
+      pinmux_flexcomm1_spi_t1s: pinmux_flexcomm1_spi_t1s {
+          group0 {
+              pinmux = <IO_MUX_FC1_SPI_SS0_IO7   /* SCK  */
+                        IO_MUX_FC1_SPI_SS0_IO8   /* MISO */
+                        IO_MUX_FC1_SPI_SS0_IO9>; /* MOSI */
+              slew-rate = "ultra";
+          };
+      };
+  };
+
+&flexcomm1 {
+	compatible = "nxp,lpc-spi";
+	status = "okay";
+	pinctrl-0 = <&pinmux_flexcomm1_spi_t1s>;
+	pinctrl-names = "default";
+	#address-cells = <1>;
+	#size-cells = <0>;
+	cs-gpios = <&hsgpio0 10 GPIO_ACTIVE_LOW>;
+
+	lan8651: lan865x@0 {
+		compatible = "microchip,lan865x";
+		reg = <0>;
+		spi-max-frequency = <25000000>;
+		int-gpios = <&hsgpio1 22 GPIO_ACTIVE_LOW>;
+        rst-gpios = <&hsgpio0 19 GPIO_ACTIVE_LOW>;
+		local-mac-address = [02 00 5e 10 06 12];
+		phy-handle = <&lan8651_phy>;
+
+		lan8651_mdio: lan8651_mdio {
+			compatible = "microchip,lan865x-mdio";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			lan8651_phy: ethernet-phy@0 {
+				compatible = "microchip,t1s-phy";
+				reg = <0>;
+				plca-enable;
+				plca-node-id = <3>;
+				plca-node-count = <8>;
+				plca-burst-count = <0>;
+				plca-burst-timer = <0x80>;
+				plca-to-timer = <0x20>;
+				status = "okay";
+			};
+		};
+
+		status = "okay";
+	};
+};
