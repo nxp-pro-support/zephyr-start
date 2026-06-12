@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>T1S LIGHT GRID — Concept A "Rack"</title>
+<style>
+:root{
+  --night:#000000;
+  --jet:#343533;
+  --persian:#66A8A6;
+  --tiffany:#89CBC5;
+  --orange:#ED721B;
+  --hot:#E74717;
+  --hairline:rgba(137,203,197,.18);
+  --font-display:"Brandon Grotesque","Avenir Next","Futura","Century Gothic",system-ui,sans-serif;
+  --font-body:"Avenir Next","Avenir","Segoe UI",system-ui,sans-serif;
+  --font-mono:"Cascadia Code","SF Mono",Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  background:var(--night);
+  color:var(--tiffany);
+  font-family:var(--font-body);
+  font-size:14px;
+  /* faint engineering grid */
+  background-image:
+    linear-gradient(rgba(52,53,51,.25) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(52,53,51,.25) 1px, transparent 1px);
+  background-size:48px 48px;
+}
+/* ---------- header ---------- */
+header{
+  display:flex;align-items:baseline;justify-content:space-between;
+  padding:28px 40px 22px;
+  border-bottom:1px solid var(--hairline);
+}
+.brand{display:flex;align-items:baseline;gap:14px}
+.brand .dot{
+  width:10px;height:10px;border-radius:50%;
+  background:var(--hot);
+  box-shadow:0 0 12px var(--hot);
+  align-self:center;
+  animation:pulse 2.4s ease-in-out infinite;
+}
+@keyframes pulse{50%{opacity:.45;box-shadow:0 0 4px var(--hot)}}
+h1{
+  font-family:var(--font-display);
+  font-weight:200;
+  font-size:22px;
+  letter-spacing:.45em;
+  text-transform:uppercase;
+  color:#fff;
+}
+h1 b{font-weight:200;color:var(--hot)}
+.head-stats{display:flex;gap:36px;font-family:var(--font-mono);font-size:11px}
+.head-stats div{display:flex;flex-direction:column;gap:2px;text-align:right}
+.head-stats .k{color:var(--jet);letter-spacing:.2em;text-transform:uppercase;font-family:var(--font-body);font-size:9px}
+.head-stats .v{color:var(--tiffany)}
+.head-stats .v.hot{color:var(--orange)}
+/* ---------- rack ---------- */
+main{padding:34px 40px 60px;max-width:1180px;margin:0 auto}
+.rack-label{
+  font-family:var(--font-display);font-weight:200;font-size:11px;
+  letter-spacing:.5em;text-transform:uppercase;color:var(--persian);
+  margin:0 0 14px 2px;
+}
+.row{
+  display:grid;
+  grid-template-columns:150px 1fr 170px 60px;
+  gap:0 30px;
+  align-items:center;
+  border:1px solid var(--hairline);
+  border-left:3px solid var(--jet);
+  background:rgba(0,0,0,.78);
+  padding:20px 26px;
+  margin-bottom:14px;
+  opacity:0;
+  transform:translateY(10px);
+  animation:reveal .5s ease forwards;
+}
+.row:nth-child(2){animation-delay:.08s}
+.row:nth-child(3){animation-delay:.16s}
+.row:nth-child(4){animation-delay:.24s}
+.row:nth-child(5){animation-delay:.32s}
+@keyframes reveal{to{opacity:1;transform:none}}
+.row:hover{border-left-color:var(--hot)}
+.row.bcast{border-left-color:var(--orange);background:rgba(231,71,23,.04)}
+/* id block */
+.idb .node{
+  font-family:var(--font-mono);font-size:26px;color:#fff;line-height:1;
+}
+.idb .node span{color:var(--hot);font-size:14px;vertical-align:top}
+.idb .name{
+  font-family:var(--font-display);font-weight:200;letter-spacing:.22em;
+  text-transform:uppercase;font-size:11px;color:var(--tiffany);margin-top:6px;
+}
+.idb .ip{font-family:var(--font-mono);font-size:10px;color:var(--jet);margin-top:3px}
+/* channel faders */
+.chans{display:flex;flex-direction:column;gap:10px}
+.chan{display:grid;grid-template-columns:14px 1fr 44px;gap:14px;align-items:center}
+.chan label{
+  font-family:var(--font-mono);font-size:11px;color:var(--persian);text-align:center;
+}
+.chan .val{font-family:var(--font-mono);font-size:11px;color:var(--tiffany);text-align:right}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:18px;background:transparent;cursor:pointer;
+}
+input[type=range]::-webkit-slider-runnable-track{
+  height:2px;background:var(--jet);
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:8px;height:18px;margin-top:-8px;
+  background:var(--orange);
+  border:none;border-radius:1px;
+  box-shadow:0 0 10px rgba(237,114,27,.55);
+  transition:background .15s;
+}
+input[type=range]:hover::-webkit-slider-thumb{background:var(--hot)}
+input[type=range]::-moz-range-track{height:2px;background:var(--jet)}
+input[type=range]::-moz-range-thumb{
+  width:8px;height:18px;background:var(--orange);
+  border:none;border-radius:1px;box-shadow:0 0 10px rgba(237,114,27,.55);
+}
+/* swatch */
+.swatch{display:flex;flex-direction:column;align-items:center;gap:8px}
+.chip{
+  width:120px;height:44px;border-radius:2px;
+  border:1px solid var(--hairline);
+  transition:background .12s, box-shadow .25s;
+}
+.hex{font-family:var(--font-mono);font-size:11px;color:var(--tiffany);letter-spacing:.12em}
+/* link status */
+.status{display:flex;flex-direction:column;align-items:center;gap:7px}
+.led{
+  width:9px;height:9px;border-radius:50%;
+  background:var(--tiffany);box-shadow:0 0 10px var(--tiffany);
+  animation:pulse 3s ease-in-out infinite;
+}
+.led.down{background:var(--jet);box-shadow:none;animation:none}
+.status .t{font-size:8px;letter-spacing:.3em;text-transform:uppercase;color:var(--jet)}
+footer{
+  padding:0 40px 40px;max-width:1180px;margin:0 auto;
+  font-family:var(--font-mono);font-size:10px;color:var(--jet);
+  display:flex;justify-content:space-between;
+}
+footer span b{color:var(--persian);font-weight:normal}
+@media (max-width:760px){
+  .row{grid-template-columns:1fr;gap:18px}
+  .head-stats{display:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="dot"></div>
+    <h1>T1S Light Gr<b>i</b>d</h1>
+  </div>
+  <div class="head-stats">
+    <div><span class="k">Bridge</span><span class="v">2.2.2.5 · RW612</span></div>
+    <div><span class="k">Segment</span><span class="v">10BASE-T1S · PLCA 8</span></div>
+    <div><span class="k">Nodes online</span><span class="v hot" id="online">—</span></div>
+  </div>
+</header>
+
+<main>
+  <p class="rack-label">// Device rack</p>
+  <div id="rack"></div>
+</main>
+
+<footer>
+  <span>PWM duty 0–255 per channel · updates stream over WebSocket</span>
+  <span><b>R G B</b> faders → LED, live</span>
+</footer>
+
+<script>
+"use strict";
+/* Devices normally arrive from GET /devices; mocked here. */
+const DEVICES = [
+  {id:0, name:"All nodes",  ip:"broadcast", up:true,  r:0,   g:0,   b:0,   bcast:true},
+  {id:2, name:"MCXA266-A",  ip:"2.2.2.7",   up:true,  r:231, g:71,  b:23},
+  {id:3, name:"MCXA266-B",  ip:"2.2.2.8",   up:true,  r:137, g:203, b:197},
+  {id:5, name:"MCXA266-C",  ip:"2.2.2.9",   up:false, r:0,   g:0,   b:0},
+];
+
+function send(d){
+  /* Implementation phase: ws.send(JSON.stringify({id:d.id, r:d.r, g:d.g, b:d.b})) */
+  console.log("tx", d.id, d.r, d.g, d.b);
+}
+const hex = d => "#" + [d.r,d.g,d.b].map(v=>v.toString(16).padStart(2,"0")).join("").toUpperCase();
+
+const rack = document.getElementById("rack");
+for (const d of DEVICES){
+  const row = document.createElement("div");
+  row.className = "row" + (d.bcast ? " bcast" : "");
+  row.innerHTML = `
+    <div class="idb">
+      <div class="node">${d.bcast ? "&#x2731;" : "N"+d.id}<span>${d.bcast ? "" : "&#9656;"}</span></div>
+      <div class="name">${d.name}</div>
+      <div class="ip">${d.ip}</div>
+    </div>
+    <div class="chans">
+      ${["r","g","b"].map(c=>`
+        <div class="chan">
+          <label>${c.toUpperCase()}</label>
+          <input type="range" min="0" max="255" value="${d[c]}" data-ch="${c}">
+          <span class="val" data-val="${c}">${d[c]}</span>
+        </div>`).join("")}
+    </div>
+    <div class="swatch">
+      <div class="chip"></div>
+      <div class="hex"></div>
+    </div>
+    <div class="status">
+      <div class="led ${d.up ? "" : "down"}"></div>
+      <span class="t">${d.bcast ? "group" : d.up ? "link" : "down"}</span>
+    </div>`;
+  rack.appendChild(row);
+
+  const chip = row.querySelector(".chip");
+  const hexEl = row.querySelector(".hex");
+  const paint = () => {
+    chip.style.background = hex(d);
+    chip.style.boxShadow = `0 0 26px ${hex(d)}55`;
+    hexEl.textContent = hex(d);
+  };
+  paint();
+
+  row.querySelectorAll("input[type=range]").forEach(sl => {
+    sl.addEventListener("input", () => {
+      d[sl.dataset.ch] = +sl.value;
+      row.querySelector(`[data-val=${sl.dataset.ch}]`).textContent = sl.value;
+      paint();
+      send(d);
+    });
+  });
+}
+document.getElementById("online").textContent =
+  DEVICES.filter(d=>!d.bcast && d.up).length + " / " + (DEVICES.length-1);
+</script>
+</body>
+</html>

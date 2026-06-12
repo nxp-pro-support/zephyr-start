@@ -1,0 +1,106 @@
+﻿#include <zephyr/dt-bindings/gpio/arduino-header-r3.h>
+#include <zephyr/dt-bindings/pwm/pwm.h>
+
+/*
+ * LAN8651 (10BASE-T1S) on the FRDM-MCXA266 mikroBUS/Arduino header via LPSPI0.
+ * Same wiring as the lan8651_t1s_demo project.
+ *
+ * The on-board RGB LED is driven by PWM instead of GPIO. All three LED pins
+ * mux to CTIMER2 match outputs, so one timer covers full-color mixing:
+ *
+ *   red   P3_18 -> CT2_MAT0  (PWM channel 0)
+ *   green P3_19 -> CT2_MAT1  (PWM channel 1)
+ *   blue  P3_21 -> CT2_MAT3  (PWM channel 3)
+ *
+ * Channel 2 (MAT2) stays unused so the PWM driver can claim it as the shared
+ * period register.
+ *
+ * Polarity: the CTimer PWM output is LOW from cycle start until the match
+ * value (= pulse cycles), then HIGH until the period resets. With the
+ * active-low LEDs that means LED on-time == pulse cycles, so NORMAL polarity
+ * already gives "pulse = brightness". (PWM_POLARITY_INVERTED would make the
+ * driver program a never-firing match at 0% duty, parking the pin LOW and
+ * latching the LED fully on.)
+ */
+
+/ {
+	aliases {
+		ethernet0 = &lan8651;
+	};
+
+	pwmleds {
+		compatible = "pwm-leds";
+
+		red_pwm_led: red_pwm_led {
+			pwms = <&ctimer2 0 PWM_KHZ(1) PWM_POLARITY_NORMAL>;
+			label = "Red PWM LED";
+		};
+
+		green_pwm_led: green_pwm_led {
+			pwms = <&ctimer2 1 PWM_KHZ(1) PWM_POLARITY_NORMAL>;
+			label = "Green PWM LED";
+		};
+
+		blue_pwm_led: blue_pwm_led {
+			pwms = <&ctimer2 3 PWM_KHZ(1) PWM_POLARITY_NORMAL>;
+			label = "Blue PWM LED";
+		};
+	};
+};
+
+&pinctrl {
+	pinmux_ctimer2_rgb: pinmux_ctimer2_rgb {
+		group0 {
+			pinmux = <CT2_MAT0_P3_18>,
+				 <CT2_MAT1_P3_19>,
+				 <CT2_MAT3_P3_21>;
+			drive-strength = "low";
+			slew-rate = "fast";
+		};
+	};
+};
+
+&ctimer2 {
+	compatible = "nxp,ctimer-pwm";
+	status = "okay";
+	pinctrl-0 = <&pinmux_ctimer2_rgb>;
+	pinctrl-names = "default";
+	#pwm-cells = <3>;
+};
+
+&lpspi0 {
+	status = "okay";
+	pinctrl-names = "default";
+
+	lan8651: lan865x@0 {
+		compatible = "microchip,lan865x";
+		reg = <0>;
+		spi-max-frequency = <25000000>;
+		int-gpios = <&gpio3 22 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		rst-gpios = <&gpio1 7 GPIO_ACTIVE_LOW>;
+		local-mac-address = [02 00 5e 10 02 66];
+		phy-handle = <&lan8651_phy>;
+
+		lan8651_mdio: lan8651_mdio {
+			compatible = "microchip,lan865x-mdio";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			lan8651_phy: ethernet-phy@0 {
+				compatible = "microchip,t1s-phy";
+				reg = <0>;
+				plca-enable;
+				plca-node-id = <2>;
+				plca-node-count = <8>;
+				plca-burst-count = <0>;
+				plca-burst-timer = <0x80>;
+				plca-to-timer = <0x20>;
+				status = "okay";
+			};
+		};
+
+		status = "okay";
+	};
+};
+

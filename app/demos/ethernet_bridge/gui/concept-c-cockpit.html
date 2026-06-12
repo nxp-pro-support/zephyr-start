@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NODE CONTROL — Concept C "Cockpit"</title>
+<style>
+:root{
+  --night:#000000;
+  --jet:#343533;
+  --persian:#66A8A6;
+  --tiffany:#89CBC5;
+  --orange:#ED721B;
+  --hot:#E74717;
+  --hairline:rgba(137,203,197,.14);
+  --font-display:"Brandon Grotesque","Avenir Next","Futura","Century Gothic",system-ui,sans-serif;
+  --font-body:"Avenir Next","Avenir","Segoe UI",system-ui,sans-serif;
+  --font-mono:"Cascadia Code","SF Mono",Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  background:var(--night);color:var(--tiffany);
+  font-family:var(--font-body);font-size:14px;
+  display:grid;grid-template-columns:250px 1fr;
+  overflow:hidden;
+}
+/* ================= sidebar : network tree ================= */
+aside{
+  border-right:1px solid var(--hairline);
+  display:flex;flex-direction:column;
+  background:linear-gradient(180deg, rgba(52,53,51,.18), transparent 30%);
+}
+aside .head{
+  padding:26px 22px 18px;
+  border-bottom:1px solid var(--hairline);
+}
+aside h1{
+  font-family:var(--font-display);font-weight:200;
+  font-size:13px;letter-spacing:.5em;text-transform:uppercase;color:#fff;
+}
+aside h1 b{color:var(--hot);font-weight:200}
+.tree{padding:18px 0;flex:1;overflow-y:auto}
+.bridge{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 22px;margin-bottom:4px;
+}
+.bridge .ic{
+  width:8px;height:8px;background:var(--persian);
+  transform:rotate(45deg);flex:none;
+}
+.bridge .n{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--persian)}
+.bridge .ip{font-family:var(--font-mono);font-size:9px;color:var(--jet);margin-left:auto}
+.node{
+  position:relative;
+  display:flex;align-items:center;gap:12px;
+  padding:13px 22px 13px 38px;
+  cursor:pointer;
+  border-left:3px solid transparent;
+  transition:background .15s;
+}
+.node::before{ /* segment stub line */
+  content:"";position:absolute;left:25px;top:0;bottom:0;width:1px;
+  background:var(--hairline);
+}
+.node:hover{background:rgba(137,203,197,.05)}
+.node.sel{border-left-color:var(--hot);background:rgba(231,71,23,.06)}
+.node .chip{
+  width:14px;height:14px;border-radius:3px;flex:none;
+  border:1px solid rgba(255,255,255,.15);
+  transition:background .15s, box-shadow .15s;
+}
+.node .nm{font-size:12px;letter-spacing:.1em;color:#fff}
+.node .sub{font-family:var(--font-mono);font-size:9px;color:var(--jet);margin-top:2px}
+.node.down .nm{color:var(--jet)}
+.node .lk{
+  margin-left:auto;width:7px;height:7px;border-radius:50%;
+  background:var(--tiffany);box-shadow:0 0 8px var(--tiffany);
+  animation:pulse 3s ease-in-out infinite;
+}
+@keyframes pulse{50%{opacity:.4}}
+.node.down .lk{background:var(--jet);box-shadow:none;animation:none}
+aside .foot{
+  border-top:1px solid var(--hairline);
+  padding:16px 22px;
+  font-family:var(--font-mono);font-size:9px;color:var(--jet);
+  line-height:1.9;
+}
+aside .foot b{color:var(--persian);font-weight:normal}
+/* ================= main : control surface ================= */
+main{
+  position:relative;overflow-y:auto;
+  display:flex;flex-direction:column;
+  padding:44px 56px;
+}
+main::before{ /* ambient glow follows selected color */
+  content:"";position:fixed;right:-20%;top:-30%;width:70%;height:90%;
+  background:radial-gradient(50% 50% at 50% 50%, var(--ambient,#000) 0%, transparent 70%);
+  opacity:.14;pointer-events:none;transition:background .3s;
+}
+.crumb{
+  font-family:var(--font-mono);font-size:10px;color:var(--jet);
+  letter-spacing:.15em;margin-bottom:14px;
+}
+.crumb b{color:var(--persian);font-weight:normal}
+h2{
+  font-family:var(--font-display);font-weight:100;
+  font-size:clamp(30px,4.5vw,52px);
+  letter-spacing:.3em;text-transform:uppercase;color:#fff;line-height:1.05;
+}
+.statline{
+  display:flex;gap:30px;margin:18px 0 40px;
+  font-family:var(--font-mono);font-size:10px;
+}
+.statline span{color:var(--jet)}
+.statline b{color:var(--tiffany);font-weight:normal}
+.statline .ok{color:var(--tiffany)}
+.statline .down{color:var(--hot)}
+/* control deck */
+.deck{
+  display:grid;grid-template-columns:auto auto 1fr;gap:60px;align-items:center;
+  max-width:880px;
+}
+/* --- hue/sat wheel --- */
+.wheelbox{position:relative;width:280px;height:280px;flex:none}
+.wheel{
+  position:absolute;inset:0;border-radius:50%;cursor:crosshair;
+  background:
+    radial-gradient(closest-side, #fff 0%, rgba(255,255,255,0) 70%),
+    conic-gradient(#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);
+  filter:brightness(var(--wv,1));
+  box-shadow:0 0 0 1px var(--hairline), 0 0 60px rgba(137,203,197,.07);
+}
+.cursor{
+  position:absolute;width:18px;height:18px;border-radius:50%;
+  border:2px solid #fff;
+  box-shadow:0 0 0 1.5px #000, 0 0 14px rgba(0,0,0,.8);
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+  left:50%;top:50%;
+}
+/* --- brightness fader --- */
+.vfader{display:flex;flex-direction:column;align-items:center;gap:14px;height:280px}
+.vfader .t{font-size:9px;letter-spacing:.4em;text-transform:uppercase;color:var(--jet);writing-mode:vertical-rl}
+.vtrack{
+  position:relative;width:3px;flex:1;border-radius:2px;cursor:pointer;
+  background:linear-gradient(180deg, var(--tiffany), var(--jet));
+}
+.vthumb{
+  position:absolute;left:50%;width:22px;height:8px;border-radius:2px;
+  background:var(--orange);box-shadow:0 0 12px rgba(237,114,27,.6);
+  transform:translate(-50%,-50%);
+}
+.vpct{font-family:var(--font-mono);font-size:11px;color:var(--tiffany)}
+/* --- readouts --- */
+.read{display:flex;flex-direction:column;gap:26px;min-width:240px}
+.rgbrow{display:flex;gap:12px}
+.rgbcell{
+  flex:1;border:1px solid var(--hairline);padding:12px 0 10px;text-align:center;
+}
+.rgbcell .k{font-family:var(--font-mono);font-size:9px;color:var(--persian)}
+.rgbcell .v{font-family:var(--font-mono);font-size:19px;color:#fff;margin-top:4px}
+.rgbcell .pwm{font-family:var(--font-mono);font-size:8px;color:var(--jet);margin-top:4px}
+.hexline{
+  display:flex;align-items:baseline;justify-content:space-between;
+  border-bottom:1px solid var(--hairline);padding-bottom:10px;
+}
+.hexline .hex{font-family:var(--font-mono);font-size:22px;letter-spacing:.18em;color:var(--tiffany)}
+.hexline .t{font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--jet)}
+.swrow{display:flex;gap:10px}
+.sw{
+  width:30px;height:30px;border-radius:50%;cursor:pointer;
+  border:1px solid rgba(255,255,255,.12);
+  transition:transform .15s;
+}
+.sw:hover{transform:scale(1.2)}
+.cta{
+  margin-top:6px;
+  font-family:var(--font-display);font-weight:200;
+  letter-spacing:.45em;text-transform:uppercase;font-size:11px;
+  color:#fff;background:none;cursor:pointer;
+  border:1px solid var(--orange);
+  padding:14px 10px 13px;
+  transition:background .2s, border-color .2s;
+}
+.cta:hover{background:rgba(231,71,23,.15);border-color:var(--hot)}
+/* telemetry strip */
+.telemetry{
+  margin-top:auto;padding-top:48px;
+  display:flex;gap:44px;
+  font-family:var(--font-mono);font-size:10px;color:var(--jet);
+}
+.telemetry b{color:var(--persian);font-weight:normal}
+.telemetry .tx{color:var(--orange)}
+@media (max-width:980px){
+  body{grid-template-columns:1fr;overflow:auto}
+  aside{display:none}
+  .deck{grid-template-columns:1fr;gap:40px;justify-items:center}
+}
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="head"><h1>T1S Gr<b>i</b>d</h1></div>
+  <div class="tree">
+    <div class="bridge">
+      <div class="ic"></div>
+      <span class="n">RW612 Bridge</span>
+      <span class="ip">2.2.2.5</span>
+    </div>
+    <div id="nodes"></div>
+  </div>
+  <div class="foot">
+    SEGMENT <b>10BASE-T1S</b><br>
+    PLCA CYCLE <b>8 NODES</b> · BURST 0<br>
+    MEDIA <b>SINGLE PAIR</b>
+  </div>
+</aside>
+
+<main>
+  <div class="crumb">SEGMENT / <b id="crumb">—</b></div>
+  <h2 id="title">—</h2>
+  <div class="statline" id="statline"></div>
+
+  <div class="deck">
+    <div class="wheelbox">
+      <div class="wheel" id="wheel"></div>
+      <div class="cursor" id="cursor"></div>
+    </div>
+
+    <div class="vfader">
+      <div class="vtrack" id="vtrack"><div class="vthumb" id="vthumb"></div></div>
+      <span class="vpct" id="vpct">100</span>
+    </div>
+
+    <div class="read">
+      <div class="hexline"><span class="t">Output</span><span class="hex" id="hex">#000000</span></div>
+      <div class="rgbrow" id="rgbrow"></div>
+      <div class="swrow" id="swrow"></div>
+      <button class="cta" id="blink">Identify ◌</button>
+    </div>
+  </div>
+
+  <div class="telemetry">
+    <span>LINK <b id="t-link">—</b></span>
+    <span>WS <b>OPEN</b></span>
+    <span>TX RATE <b class="tx" id="t-rate">0 msg/s</b></span>
+    <span>LATENCY <b>~2 ms</b></span>
+  </div>
+</main>
+
+<script>
+"use strict";
+const DEVICES = [
+  {id:2, name:"MCXA266-A", ip:"2.2.2.7", up:true,  h:14,  s:.9, v:1},
+  {id:3, name:"MCXA266-B", ip:"2.2.2.8", up:true,  h:174, s:.32,v:.8},
+  {id:5, name:"MCXA266-C", ip:"2.2.2.9", up:false, h:0,   s:0,  v:0},
+];
+const SWATCHES = ["#E74717","#ED721B","#89CBC5","#66A8A6","#FFFFFF"];
+
+let sel = DEVICES[0];
+let txCount = 0;
+function send(d, rgb){ txCount++; console.log("tx", d.id, rgb); } /* → ws.send(...) */
+
+/* hsv (h:0-360, s/v:0-1) → rgb 0-255 */
+function hsv2rgb(h,s,v){
+  const f = n => { const k=(n+h/60)%6; return Math.round(255*v*(1-s*Math.max(0,Math.min(k,4-k,1)))); };
+  return {r:f(5), g:f(3), b:f(1)};
+}
+function rgbhex({r,g,b}){ return "#"+[r,g,b].map(x=>x.toString(16).padStart(2,"0")).join("").toUpperCase(); }
+
+/* ---------- sidebar ---------- */
+const nodesEl = document.getElementById("nodes");
+for (const d of DEVICES){
+  const el = document.createElement("div");
+  el.className = "node" + (d.up ? "" : " down");
+  el.innerHTML = `
+    <div class="chip"></div>
+    <div><div class="nm">${d.name}</div><div class="sub">PLCA ${d.id} · ${d.ip}</div></div>
+    <div class="lk"></div>`;
+  el.addEventListener("click", ()=>select(d));
+  d.el = el;
+  nodesEl.appendChild(el);
+}
+function paintChips(){
+  for (const d of DEVICES){
+    const c = rgbhex(hsv2rgb(d.h,d.s,d.v));
+    d.el.querySelector(".chip").style.background = c;
+    d.el.querySelector(".chip").style.boxShadow = d.up ? `0 0 10px ${c}66` : "none";
+  }
+}
+
+/* ---------- wheel ---------- */
+const wheel  = document.getElementById("wheel");
+const cursor = document.getElementById("cursor");
+const R = 140;
+function wheelFromHS(){
+  const a = (sel.h-90) * Math.PI/180;
+  const r = sel.s * R;
+  cursor.style.left = (50 + 50*(r*Math.cos(a))/R) + "%";
+  cursor.style.top  = (50 + 50*(r*Math.sin(a))/R) + "%";
+  wheel.style.setProperty("--wv", sel.v);
+}
+function pickFromEvent(e){
+  const rect = wheel.getBoundingClientRect();
+  const x = e.clientX - rect.left - rect.width/2;
+  const y = e.clientY - rect.top  - rect.height/2;
+  const r = Math.min(Math.hypot(x,y), R);
+  sel.h = ((Math.atan2(y,x)*180/Math.PI)+90+360) % 360;
+  sel.s = r / R;
+  apply();
+}
+let dragging = false;
+wheel.addEventListener("pointerdown", e=>{dragging=true;wheel.setPointerCapture(e.pointerId);pickFromEvent(e)});
+wheel.addEventListener("pointermove", e=>dragging&&pickFromEvent(e));
+wheel.addEventListener("pointerup",   ()=>dragging=false);
+
+/* ---------- brightness fader ---------- */
+const vtrack = document.getElementById("vtrack");
+const vthumb = document.getElementById("vthumb");
+function faderFromV(){
+  vthumb.style.top = ((1-sel.v)*100) + "%";
+  document.getElementById("vpct").textContent = Math.round(sel.v*100);
+}
+function vFromEvent(e){
+  const r = vtrack.getBoundingClientRect();
+  sel.v = Math.min(1, Math.max(0, 1 - (e.clientY - r.top)/r.height));
+  apply();
+}
+let vdrag=false;
+vtrack.addEventListener("pointerdown", e=>{vdrag=true;vtrack.setPointerCapture(e.pointerId);vFromEvent(e)});
+vtrack.addEventListener("pointermove", e=>vdrag&&vFromEvent(e));
+vtrack.addEventListener("pointerup",   ()=>vdrag=false);
+
+/* ---------- readouts ---------- */
+const rgbrow = document.getElementById("rgbrow");
+rgbrow.innerHTML = ["R","G","B"].map(c=>`
+  <div class="rgbcell"><div class="k">${c}</div><div class="v" id="v${c}">0</div><div class="pwm" id="p${c}">0% PWM</div></div>`).join("");
+
+const swrow = document.getElementById("swrow");
+for (const s of SWATCHES){
+  const el = document.createElement("div");
+  el.className = "sw"; el.style.background = s;
+  el.addEventListener("click", ()=>{
+    const r=parseInt(s.slice(1,3),16)/255, g=parseInt(s.slice(3,5),16)/255, b=parseInt(s.slice(5,7),16)/255;
+    const mx=Math.max(r,g,b), mn=Math.min(r,g,b), d=mx-mn;
+    sel.v = mx; sel.s = mx ? d/mx : 0;
+    sel.h = d===0 ? 0 : mx===r ? 60*(((g-b)/d)%6) : mx===g ? 60*((b-r)/d+2) : 60*((r-g)/d+4);
+    if (sel.h<0) sel.h+=360;
+    apply();
+  });
+  swrow.appendChild(el);
+}
+
+document.getElementById("blink").addEventListener("click", ()=>{
+  /* Implementation phase: ws identify command — device blinks white 3x */
+  console.log("identify", sel.id);
+});
+
+/* ---------- selection & paint ---------- */
+function select(d){
+  sel = d;
+  document.querySelectorAll(".node").forEach(n=>n.classList.remove("sel"));
+  d.el.classList.add("sel");
+  document.getElementById("crumb").textContent = d.name;
+  document.getElementById("title").textContent = d.name;
+  document.getElementById("statline").innerHTML = `
+    <span>IP <b>${d.ip}</b></span>
+    <span>PLCA NODE <b>${d.id} / 8</b></span>
+    <span>LINK <b class="${d.up?"ok":"down"}">${d.up?"UP · 10 Mb/s":"DOWN"}</b></span>`;
+  document.getElementById("t-link").textContent = d.up ? "UP" : "DOWN";
+  apply(false);
+}
+function apply(tx=true){
+  const rgb = hsv2rgb(sel.h, sel.s, sel.v);
+  wheelFromHS(); faderFromV(); paintChips();
+  document.getElementById("hex").textContent = rgbhex(rgb);
+  document.documentElement.style.setProperty("--ambient", rgbhex(rgb));
+  document.querySelector("main").style.setProperty("--ambient", rgbhex(rgb));
+  for (const [k,v] of Object.entries(rgb)){
+    document.getElementById("v"+k.toUpperCase()).textContent = v;
+    document.getElementById("p"+k.toUpperCase()).textContent = Math.round(v/255*100)+"% PWM";
+  }
+  if (tx) send(sel, rgb);
+}
+/* tx rate ticker */
+setInterval(()=>{ document.getElementById("t-rate").textContent = txCount + " msg/s"; txCount = 0; }, 1000);
+
+select(DEVICES[0]);
+</script>
+</body>
+</html>

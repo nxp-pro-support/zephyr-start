@@ -1,0 +1,19 @@
+mainmenu "T1S Device — RGB LED dashboard node"
+
+# MCXA266's vector table needs 0x400 alignment (large IRQ count), but the
+# default MCUboot header reservation is only 0x200. The linker then pads
+# 0x200 of zeros between header and vectors, while imgtool stamps 0x200 as
+# the header size — so MCUboot jumps into the padding and the app hardfaults
+# in a reset loop. Reserve a full 0x400 so header size == vector offset.
+config ROM_START_OFFSET
+	hex
+	default 0x400 if BOOTLOADER_MCUBOOT
+
+config APP_DEVICE_NAME
+	string "Device name shown on the dashboard"
+	default "MCXA266-A"
+	help
+	  Display name this node reports over the WebSocket state message.
+	  Give each board on the segment a distinct name.
+
+source "Kconfig.zephyr"
